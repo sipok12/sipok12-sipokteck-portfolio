@@ -60,11 +60,16 @@
 
   // --- Composants ---
   SD.serviceCard = function (service, mode) {
-    const priceText = service.startingPrice === null || service.startingPrice === undefined
+    const hasPrice = service.startingPrice !== null && service.startingPrice !== undefined;
+    const isRange = hasPrice && service.priceMax !== null && service.priceMax !== undefined && service.priceMax > service.startingPrice;
+    const unit = service.priceUnit ? h("span", { class: "unit", text: ` ${service.priceUnit}` }) : null;
+    const priceText = !hasPrice
       ? h("strong", { text: "Sur devis" })
-      : [h("small", { text: "À partir de" }),
-         h("strong", { text: `${SD.formatPrice(service.startingPrice)} FCFA` }),
-         service.priceUnit ? h("span", { class: "unit", text: ` ${service.priceUnit}` }) : null];
+      : isRange
+        ? [h("small", { text: "Entre" }),
+           h("strong", { text: `${SD.formatPrice(service.startingPrice)} – ${SD.formatPrice(service.priceMax)} FCFA` }), unit]
+        : [h("small", { text: "À partir de" }),
+           h("strong", { text: `${SD.formatPrice(service.startingPrice)} FCFA` }), unit];
     const price = h("p", { class: "price" }, priceText);
     const quoteLink = h("a", { class: "button button-ghost button-small", href: `/contact?service=${encodeURIComponent(service.slug)}#devis`, text: "Demander un devis" });
     const list = service.details && service.details.length

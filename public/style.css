@@ -112,7 +112,7 @@ p { margin: 0 0 1em; }
 .price small { flex-basis: 100%; font-size: .78rem; color: var(--muted); }
 .price strong { font: 700 1.4rem var(--display); color: var(--white); }
 .price .unit { color: var(--muted); font-size: .9rem; }
-.pricing-card .price strong { font-size: 1.9rem; color: var(--cyan); }
+.pricing-card .price strong { font-size: 1.7rem; color: var(--cyan); text-wrap: balance; }
 .fineprint { font-size: .82rem; color: var(--muted); }
 .checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
 .checklist li { position: relative; padding-left: 1.5rem; color: var(--text); font-size: .95rem; }

@@ -350,16 +350,18 @@
     })
   });
 
+  const fmt = (n) => new Intl.NumberFormat("fr-FR").format(n);
   views.services = entityView({
     endpoint: "/api/admin/services", title: "Services & tarifs", singular: "Nouveau service",
     intro: "Ces informations alimentent les pages Services, Tarifs et le formulaire de devis.",
-    defaults: { icon: "◆", position: 0, active: true, conditions: "Prix de départ indicatif en FCFA. Le tarif final est précisé dans un devis personnalisé après étude de votre besoin." },
+    defaults: { icon: "◆", position: 0, active: true, conditions: "Prix indicatif en FCFA. Le tarif final est précisé dans un devis personnalisé après étude de votre besoin." },
     fields: [
       { name: "title", label: "Titre", required: true, max: 120 },
       { name: "slug", label: "Identifiant", required: true, max: 60, help: "minuscules, chiffres, tirets" },
       { name: "icon", label: "Icône", max: 20 },
       { name: "position", label: "Ordre d'affichage", type: "number" },
-      { name: "starting_price", label: "Prix de départ (FCFA)", type: "number", help: "vide = sur devis" },
+      { name: "starting_price", label: "Prix, ou prix minimum (FCFA)", type: "number", help: "vide = sur devis" },
+      { name: "price_max", label: "Prix maximum (FCFA)", type: "number", help: "facultatif, pour une fourchette" },
       { name: "price_unit", label: "Unité", max: 40, placeholder: "/ mois" },
       { name: "summary", label: "Résumé", required: true, max: 300, full: true },
       { name: "details", label: "Contenu inclus", type: "textarea", rows: 5, max: 2000, full: true, help: "un point par ligne" },
@@ -369,7 +371,7 @@
     describe: (s) => ({
       title: `${s.icon || ""} ${s.title}`.trim(),
       badges: [[s.active ? "Visible" : "Masqué", s.active ? "green" : ""]],
-      meta: `${s.starting_price === null ? "Sur devis" : `À partir de ${new Intl.NumberFormat("fr-FR").format(s.starting_price)} FCFA ${s.price_unit || ""}`.trim()} · ordre ${s.position} · ${s.slug}`
+      meta: `${s.starting_price === null ? "Sur devis" : `${s.price_max !== null && s.price_max > s.starting_price ? `${fmt(s.starting_price)} – ${fmt(s.price_max)}` : `À partir de ${fmt(s.starting_price)}`} FCFA ${s.price_unit || ""}`.trim()} · ordre ${s.position} · ${s.slug}`
     })
   });
 

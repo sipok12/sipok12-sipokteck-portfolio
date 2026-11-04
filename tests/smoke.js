@@ -37,7 +37,7 @@ async function call(method, path, { body, auth = false, headers = {}, raw = fals
 const validQuote = {
   service: "sites-vitrines", name: "Client Test", email: "client.test@example.com", phone: "+228 90 00 00 00",
   company: "Test SARL", description: "Je souhaite un site vitrine pour mon commerce à Lomé.",
-  budget: "100 000 – 300 000 FCFA", deadline: "Environ 1 mois", consent: true
+  budget: "50 000 – 100 000 FCFA", deadline: "Environ 1 mois", consent: true
 };
 
 (async () => {
@@ -133,15 +133,17 @@ const validQuote = {
     const clientAgain = await call("POST", `/api/admin/quotes/${mine.id}/client`, { auth: true, body: {} });
     check("Pas de doublon client (même email)", clientAgain.status === 200 && clientAgain.json.existing === true);
 
-    const svc = await call("POST", "/api/admin/services", { auth: true, body: { slug: "test-service", title: "Service de test", summary: "Résumé du service de test", details: "Point 1\nPoint 2", icon: "T", starting_price: 12345, price_unit: "", conditions: "", position: 99, active: true } });
-    check("Création d'un service", svc.status === 201 && svc.json.item.starting_price === 12345, JSON.stringify(svc.json));
+    const svc = await call("POST", "/api/admin/services", { auth: true, body: { slug: "test-service", title: "Service de test", summary: "Résumé du service de test", details: "Point 1\nPoint 2", icon: "T", starting_price: 12345, price_max: 20000, price_unit: "", conditions: "", position: 99, active: true } });
+    check("Création d'un service avec fourchette de prix", svc.status === 201 && svc.json.item.starting_price === 12345 && svc.json.item.price_max === 20000, JSON.stringify(svc.json));
+    const badRange = await call("POST", "/api/admin/services", { auth: true, body: { slug: "test-range", title: "Fourchette", summary: "Résumé valable", starting_price: 50000, price_max: 10000, position: 1, active: true } });
+    check("Prix maximum inférieur au minimum → 400", badRange.status === 400);
     const dup = await call("POST", "/api/admin/services", { auth: true, body: { slug: "test-service", title: "Doublon", summary: "Résumé doublon", position: 1, active: true } });
     check("Identifiant de service en double → 409", dup.status === 409);
     const badSlug = await call("POST", "/api/admin/services", { auth: true, body: { slug: "Mauvais Slug!", title: "X Y", summary: "Résumé valable", position: 1, active: true } });
     check("Identifiant de service invalide → 400", badSlug.status === 400);
     const pub = await call("GET", "/api/services");
-    check("Le service créé apparaît sur le site public", pub.json.services.some((s) => s.slug === "test-service" && s.startingPrice === 12345));
-    const upd = await call("PUT", `/api/admin/services/${svc.json.item.id}`, { auth: true, body: { slug: "test-service", title: "Service de test", summary: "Résumé du service de test", details: "", icon: "T", starting_price: "", price_unit: "", conditions: "", position: 99, active: false } });
+    check("Le service créé apparaît sur le site public", pub.json.services.some((s) => s.slug === "test-service" && s.startingPrice === 12345 && s.priceMax === 20000));
+    const upd = await call("PUT", `/api/admin/services/${svc.json.item.id}`, { auth: true, body: { slug: "test-service", title: "Service de test", summary: "Résumé du service de test", details: "", icon: "T", starting_price: "", price_max: "", price_unit: "", conditions: "", position: 99, active: false } });
     check("Service masqué + prix vide = « sur devis »", upd.status === 200 && upd.json.item.starting_price === null && upd.json.item.active === false);
     const pub2 = await call("GET", "/api/services");
     check("Un service masqué disparaît du site public", !pub2.json.services.some((s) => s.slug === "test-service"));

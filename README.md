@@ -82,7 +82,7 @@ Sauvegardes : le plan gratuit ne remplace pas une vraie stratégie de sauvegarde
 
 Vue d'ensemble (chiffres réels uniquement) · Devis · Messages · Projets · Services & tarifs · Témoignages · Clients · Mon compte (changement de mot de passe).
 
-- Tous les prix du site se modifient dans **Services & tarifs** (prix vide = « sur devis »).
+- Tous les prix du site se modifient dans **Services & tarifs** (prix vide = « sur devis » ; un prix maximum facultatif affiche une fourchette).
 - Un projet décoché « démonstration » s'affiche comme **Projet réel** ; sinon comme **Démonstration**.
 - Un témoignage n'apparaît sur le site que s'il est **publié**. Aucun n'est fourni : n'ajoutez que de vrais avis, avec l'accord du client. La section reste masquée tant qu'il n'y en a aucun.
 - Aucune statistique de visites n'est collectée (pas de traceur) ; le tableau de bord ne compte que les devis et messages enregistrés.
@@ -116,7 +116,7 @@ Non testé : l'envoi réel d'email (pas de clé Resend), le déploiement Render 
 
 ## À valider avant le lancement public
 
-- **Prix de départ** (75 000 / 200 000 / 350 000 / 15 000 / 50 000 FCFA, 15 000 FCFA/mois) : valeurs provisoires proposées par l'assistant, à ajuster dans l'administration.
+- **Tarifs** (fournis par Jean-Paul) : sites vitrines 25 000 – 40 000 FCFA ; boutiques en ligne 50 000 – 100 000 ; applications web dès 150 000 ; design graphique dès 5 000 ; identité numérique dès 50 000 ; assistance & maintenance 15 000 FCFA par mois (« par mois » à confirmer). Modifiables dans l'administration.
 - **Page À propos** (parcours) et **conditions générales** de la page Tarifs : textes sobres et génériques, à relire.
 - **Projets** : les trois projets sont des démonstrations ; ajoutez vos vrais projets (liens, code source) et décochez « démonstration » pour eux.
 - **Réseaux sociaux** : seul GitHub est connu ; ajoutez les autres via `SOCIAL_*`.

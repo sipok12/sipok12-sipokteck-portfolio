@@ -40,7 +40,7 @@ router.get("/config", (req, res) => {
 
 router.get("/services", asyncRoute(async (req, res) => {
   const result = await query(
-    `SELECT slug, title, summary, details, icon, starting_price, price_unit, conditions
+    `SELECT slug, title, summary, details, icon, starting_price, price_max, price_unit, conditions
      FROM services WHERE active ORDER BY position, id`
   );
   res.json({
@@ -51,6 +51,7 @@ router.get("/services", asyncRoute(async (req, res) => {
       details: s.details.split("\n").map((line) => line.trim()).filter(Boolean),
       icon: s.icon,
       startingPrice: s.starting_price,
+      priceMax: s.price_max,
       priceUnit: s.price_unit,
       conditions: s.conditions
     }))

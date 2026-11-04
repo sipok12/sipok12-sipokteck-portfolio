@@ -100,6 +100,8 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT 
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS demo BOOLEAN NOT NULL DEFAULT TRUE;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE services ADD COLUMN IF NOT EXISTS price_max INTEGER CHECK (price_max IS NULL OR price_max >= 0); -- fourchette : prix maximum (facultatif)
+
 -- Nouveautés SIPOKTECH DIGITAL : technologies, image, code source (le lien « url » reste le lien de démonstration).
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS technologies VARCHAR(300) NOT NULL DEFAULT '';
 -- Anciennes bases : « technologies » y était un tableau (text[]). On le convertit en texte « A, B, C » sans perdre de données.

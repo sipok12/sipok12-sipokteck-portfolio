@@ -203,7 +203,7 @@ router.delete("/messages/:id", asyncRoute(async (req, res) => {
 
 // --- CRUD générique : projets, services, témoignages, clients ---
 // `table`, `order` et les noms de champs viennent uniquement de ce fichier (jamais de la requête).
-function mountCrud(name, { table, fields, order, listSql, label }) {
+function mountCrud(name, { table, fields, order, listSql, label, validate }) {
   const cols = fields.map(f => f.name);
 
   router.get(`/${name}`, asyncRoute(async (req, res) => {
@@ -214,6 +214,8 @@ function mountCrud(name, { table, fields, order, listSql, label }) {
   router.post(`/${name}`, asyncRoute(async (req, res) => {
     const { data, error } = readFields(req.body, fields);
     if (error) return res.status(400).json({ error });
+    const problem = validate && validate(data);
+    if (problem) return res.status(400).json({ error: problem });
     const result = await query(
       `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols.map((_, i) => `$${i + 1}`).join(", ")}) RETURNING *`,
       cols.map(c => data[c])
@@ -226,6 +228,8 @@ function mountCrud(name, { table, fields, order, listSql, label }) {
     if (!id) return res.status(400).json({ error: "Identifiant invalide." });
     const { data, error } = readFields(req.body, fields);
     if (error) return res.status(400).json({ error });
+    const problem = validate && validate(data);
+    if (problem) return res.status(400).json({ error: problem });
     const result = await query(
       `UPDATE ${table} SET ${cols.map((c, i) => `${c} = $${i + 1}`).join(", ")}, updated_at = NOW()
        WHERE id = $${cols.length + 1} RETURNING *`,
@@ -262,6 +266,11 @@ mountCrud("projects", {
 
 mountCrud("services", {
   table: "services", label: "Service", order: "position, id",
+  validate: (d) => {
+    if (d.price_max !== null && d.starting_price === null) return "Indiquez aussi le prix minimum pour une fourchette.";
+    if (d.price_max !== null && d.price_max < d.starting_price) return "Le prix maximum doit être supérieur ou égal au prix minimum.";
+    return null;
+  },
   fields: [
     { name: "slug", label: "L'identifiant", type: "string", min: 2, max: 60, required: true,
       pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, patternMessage: "L'identifiant ne peut contenir que des minuscules, chiffres et tirets." },
@@ -269,7 +278,8 @@ mountCrud("services", {
     { name: "summary", label: "Le résumé", type: "string", min: 5, max: 300, required: true },
     { name: "details", label: "Les détails", type: "text", max: 2000 },
     { name: "icon", label: "L'icône", type: "string", max: 20, default: "◆" },
-    { name: "starting_price", label: "Le prix de départ", type: "int", min: 0, max: 100000000 },
+    { name: "starting_price", label: "Le prix (ou prix minimum)", type: "int", min: 0, max: 100000000 },
+    { name: "price_max", label: "Le prix maximum", type: "int", min: 0, max: 100000000 },
     { name: "price_unit", label: "L'unité de prix", type: "string", max: 40 },
     { name: "conditions", label: "Les conditions", type: "text", max: 1000 },
     { name: "position", label: "La position", type: "int", min: 0, max: 1000, default: 0 },
