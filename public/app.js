@@ -97,7 +97,8 @@
     } else {
       media.append(h("span", { "aria-hidden": "true", text: project.icon || "💻" }));
     }
-    const techs = (project.technologies || "").split(",").map((t) => t.trim()).filter(Boolean);
+    const rawTechs = Array.isArray(project.technologies) ? project.technologies : String(project.technologies || "").split(",");
+    const techs = rawTechs.map((t) => String(t).trim()).filter(Boolean);
     const links = [];
     const demoUrl = project.url ? SD.safeUrl(project.url) : null;
     const sourceUrl = project.source_url ? SD.safeUrl(project.source_url) : null;

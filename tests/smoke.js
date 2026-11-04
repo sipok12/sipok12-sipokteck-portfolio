@@ -71,7 +71,7 @@ const validQuote = {
   const services = await call("GET", "/api/services");
   check("/api/services : 6 services avec prix de départ", services.status === 200 && services.json.services.length >= 6 && services.json.services.every((s) => s.startingPrice === null || Number.isInteger(s.startingPrice)));
   const projects = await call("GET", "/api/projects");
-  check("/api/projects : projets présents et marqués démo", projects.status === 200 && projects.json.projects.length >= 1 && projects.json.projects.every((p) => typeof p.demo === "boolean"));
+  check("/api/projects : projets présents, marqués démo, technologies en texte", projects.status === 200 && projects.json.projects.length >= 1 && projects.json.projects.every((p) => typeof p.demo === "boolean" && typeof p.technologies === "string"));
   const testimonials = await call("GET", "/api/testimonials");
   check("/api/testimonials : aucun témoignage inventé", testimonials.status === 200 && Array.isArray(testimonials.json.testimonials));
 

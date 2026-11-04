@@ -102,6 +102,21 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DE
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 -- Nouveautés SIPOKTECH DIGITAL : technologies, image, code source (le lien « url » reste le lien de démonstration).
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS technologies VARCHAR(300) NOT NULL DEFAULT '';
+-- Anciennes bases : « technologies » y était un tableau (text[]). On le convertit en texte « A, B, C » sans perdre de données.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = current_schema() AND table_name = 'projects'
+      AND column_name = 'technologies' AND data_type = 'ARRAY'
+  ) THEN
+    ALTER TABLE projects ALTER COLUMN technologies DROP DEFAULT;
+    ALTER TABLE projects ALTER COLUMN technologies TYPE VARCHAR(300)
+      USING COALESCE(array_to_string(technologies, ', '), '');
+    ALTER TABLE projects ALTER COLUMN technologies SET DEFAULT '';
+    ALTER TABLE projects ALTER COLUMN technologies SET NOT NULL;
+  END IF;
+END $$;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS image_url TEXT;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS source_url TEXT;
 

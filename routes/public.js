@@ -62,7 +62,13 @@ router.get("/projects", asyncRoute(async (req, res) => {
     `SELECT id, title, category, description, url, source_url, image_url, technologies, icon, featured, demo, created_at
      FROM projects ORDER BY featured DESC, created_at DESC`
   );
-  res.json({ projects: result.rows });
+  // Robustesse : « technologies » est toujours renvoyé sous forme de texte (« A, B, C »).
+  res.json({
+    projects: result.rows.map((p) => ({
+      ...p,
+      technologies: Array.isArray(p.technologies) ? p.technologies.join(", ") : String(p.technologies || "")
+    }))
+  });
 }));
 
 router.get("/testimonials", asyncRoute(async (req, res) => {
