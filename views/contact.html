@@ -1,0 +1,75 @@
+    <section class="page-head container">
+      <p class="eyebrow">Contact</p>
+      <h1>Parlons de <span class="grad">votre projet</span></h1>
+      <p class="lead">Demandez un devis, posez une question ou écrivez-nous directement sur WhatsApp.</p>
+    </section>
+
+    <section class="section container contact-layout">
+      <aside class="panel contact-info">
+        <h2>Nous joindre</h2>
+        <a class="contact-link" data-wa="primary" data-wa-text="Bonjour, je vous contacte depuis le site SIPOKTECH DIGITAL." href="https://wa.me/22878003599" target="_blank" rel="noopener noreferrer"><small>WhatsApp principal</small><strong data-wa-num>+228 78 00 35 99</strong></a>
+        <a class="contact-link" data-wa="secondary" data-wa-text="Bonjour, je vous contacte depuis le site SIPOKTECH DIGITAL." href="https://wa.me/22871344338" target="_blank" rel="noopener noreferrer"><small>WhatsApp secondaire</small><strong data-wa-num>+228 71 34 43 38</strong></a>
+        <a class="contact-link" data-email href="mailto:jeanpaulahite35@gmail.com"><small>Email</small><strong>jeanpaulahite35@gmail.com</strong></a>
+        <div class="contact-link"><small>Localisation</small><strong>Lomé, Togo</strong></div>
+        <div class="social-links" data-social></div>
+      </aside>
+
+      <div class="forms">
+        <div class="tabs" role="tablist" aria-label="Type de demande">
+          <button class="tab active" id="tab-devis" role="tab" aria-selected="true" aria-controls="devis" type="button">Demander un devis</button>
+          <button class="tab" id="tab-message" role="tab" aria-selected="false" aria-controls="message-panel" type="button" tabindex="-1">Poser une question</button>
+        </div>
+
+        <section id="devis" class="form-panel" role="tabpanel" aria-labelledby="tab-devis">
+          <form id="quote-form" novalidate>
+            <div class="field">
+              <label for="q-service">Prestation souhaitée *</label>
+              <select id="q-service" name="service" required><option value="">Chargement…</option></select>
+            </div>
+            <div class="row">
+              <div class="field"><label for="q-name">Nom complet *</label><input id="q-name" name="name" required minlength="2" maxlength="100" autocomplete="name"></div>
+              <div class="field"><label for="q-email">Email *</label><input id="q-email" name="email" type="email" required maxlength="254" autocomplete="email"></div>
+            </div>
+            <div class="row">
+              <div class="field"><label for="q-phone">Téléphone / WhatsApp</label><input id="q-phone" name="phone" type="tel" maxlength="25" autocomplete="tel" placeholder="+228 …"></div>
+              <div class="field"><label for="q-company">Entreprise (facultatif)</label><input id="q-company" name="company" maxlength="120" autocomplete="organization"></div>
+            </div>
+            <div class="field">
+              <label for="q-description">Décrivez votre besoin * <small>(20 caractères minimum)</small></label>
+              <textarea id="q-description" name="description" required minlength="20" maxlength="3000" rows="5" placeholder="Votre activité, ce que vous attendez du projet, exemples de sites que vous aimez…"></textarea>
+            </div>
+            <div class="row">
+              <div class="field"><label for="q-budget">Budget *</label><select id="q-budget" name="budget" required><option value="">Choisir…</option></select></div>
+              <div class="field"><label for="q-deadline">Délai souhaité *</label><select id="q-deadline" name="deadline" required><option value="">Choisir…</option></select></div>
+            </div>
+            <div class="honeypot" aria-hidden="true"><label for="q-website">Ne pas remplir</label><input id="q-website" name="website" tabindex="-1" autocomplete="off"></div>
+            <label class="check"><input type="checkbox" id="q-consent" name="consent" required> J'accepte d'être recontacté au sujet de ma demande. *</label>
+            <button class="button button-primary" type="submit">Envoyer ma demande</button>
+            <p class="form-feedback" id="quote-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="success-box" id="quote-success" hidden tabindex="-1">
+            <h3>Demande enregistrée</h3>
+            <p id="quote-success-text"></p>
+            <p>Vous pouvez aussi nous écrire directement pour accélérer le traitement :</p>
+            <div class="actions">
+              <a class="button button-primary" id="quote-wa" href="https://wa.me/22878003599" target="_blank" rel="noopener noreferrer">Envoyer sur WhatsApp</a>
+              <button class="button button-ghost" id="quote-again" type="button">Nouvelle demande</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="message-panel" class="form-panel" role="tabpanel" aria-labelledby="tab-message" hidden>
+          <form id="contact-form" novalidate>
+            <div class="row">
+              <div class="field"><label for="c-name">Nom *</label><input id="c-name" name="name" required minlength="2" maxlength="100" autocomplete="name"></div>
+              <div class="field"><label for="c-email">Email *</label><input id="c-email" name="email" type="email" required maxlength="254" autocomplete="email"></div>
+            </div>
+            <div class="field"><label for="c-subject">Sujet *</label><input id="c-subject" name="subject" required minlength="3" maxlength="160"></div>
+            <div class="field"><label for="c-message">Message *</label><textarea id="c-message" name="message" required minlength="10" maxlength="4000" rows="5"></textarea></div>
+            <div class="honeypot" aria-hidden="true"><label for="c-company">Ne pas remplir</label><input id="c-company" name="company" tabindex="-1" autocomplete="off"></div>
+            <button class="button button-primary" type="submit">Envoyer le message</button>
+            <p class="form-feedback" id="contact-feedback" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+      </div>
+    </section>

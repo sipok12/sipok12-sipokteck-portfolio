@@ -1,0 +1,29 @@
+    <section class="page-head container">
+      <p class="eyebrow">Portfolio</p>
+      <h1>Projets et <span class="grad">démonstrations</span></h1>
+      <p class="lead">Nous distinguons clairement les projets réalisés pour de vrais clients des démonstrations qui illustrent ce que nous savons faire.</p>
+    </section>
+
+    <section class="section container">
+      <form class="filters" id="project-filters" role="search" aria-label="Filtrer les projets">
+        <div>
+          <label for="f-search">Rechercher</label>
+          <input id="f-search" type="search" placeholder="Titre, technologie…" autocomplete="off">
+        </div>
+        <div>
+          <label for="f-category">Catégorie</label>
+          <select id="f-category"><option value="">Toutes</option></select>
+        </div>
+        <div>
+          <label for="f-type">Type</label>
+          <select id="f-type">
+            <option value="">Tous</option>
+            <option value="real">Projets réels</option>
+            <option value="demo">Démonstrations</option>
+          </select>
+        </div>
+      </form>
+      <p class="result-count" id="result-count" role="status" aria-live="polite"></p>
+      <div class="cards" id="project-grid"><div class="placeholder">Chargement des projets…</div></div>
+      <noscript><p class="notice">Activez JavaScript pour afficher les projets.</p></noscript>
+    </section>

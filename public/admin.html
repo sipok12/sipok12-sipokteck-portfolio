@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071426">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administration — SIPOKTECH DIGITAL</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/admin.css">
+  <script src="/admin.js" defer></script>
+</head>
+<body>
+  <header class="admin-header">
+    <a class="admin-brand" href="/">SIPOKTECH DIGITAL <span>/ ADMIN</span></a>
+    <a class="back-link" href="/">← Voir le site public</a>
+  </header>
+  <main class="admin-main">
+    <section id="login-view" class="login-card">
+      <p class="eyebrow">Espace privé</p>
+      <h1>Administration</h1>
+      <p class="muted">Connectez-vous pour gérer les devis, messages, projets, services et tarifs.</p>
+      <form id="login-form">
+        <label for="login-email">Email administrateur</label>
+        <input id="login-email" name="email" type="email" required autocomplete="username">
+        <label for="login-password">Mot de passe</label>
+        <input id="login-password" name="password" type="password" required autocomplete="current-password">
+        <button class="btn primary" type="submit">Se connecter</button>
+        <p class="feedback" id="login-feedback" role="status"></p>
+      </form>
+    </section>
+
+    <section id="dashboard" hidden>
+      <div class="dashboard-heading">
+        <div>
+          <p class="eyebrow">Tableau de bord</p>
+          <h1>Bonjour, <span id="admin-name">Admin</span></h1>
+        </div>
+        <button class="btn ghost" id="logout-button" type="button">Déconnexion</button>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Sections de l'administration">
+        <button class="tab active" role="tab" aria-selected="true" data-tab="dashboard" type="button">Vue d'ensemble</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="quotes" type="button">Devis</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="messages" type="button">Messages</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="projects" type="button">Projets</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="services" type="button">Services &amp; tarifs</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="testimonials" type="button">Témoignages</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="clients" type="button">Clients</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="account" type="button">Mon compte</button>
+      </div>
+      <section id="view" class="panel" role="tabpanel" aria-live="polite"></section>
+    </section>
+  </main>
+  <footer class="admin-footer">SIPOKTECH DIGITAL · Administration sécurisée</footer>
+</body>
+</html>
