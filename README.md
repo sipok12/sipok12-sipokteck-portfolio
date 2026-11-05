@@ -58,11 +58,20 @@ Voir `.env.example`. Aucune clé secrète n'est jamais envoyée au navigateur.
 | `CONTACT_EMAIL` | Email affiché **et** destinataire des notifications |
 | `WHATSAPP_PRIMARY`, `WHATSAPP_SECONDARY` | Numéros au format international sans « + » : `22878003599`, `22871344338` |
 | `RESEND_API_KEY`, `MAIL_FROM` | Notifications email (optionnel) |
-| `SOCIAL_*` | Liens réseaux sociaux (seuls ceux renseignés s'affichent ; GitHub par défaut) |
+| `SOCIAL_*` | Liens réseaux sociaux (seuls ceux renseignés s'affichent ; GitHub par défaut). Modifiables aussi dans l'administration |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Connexion des administrateurs via Supabase Auth (clé **publique**) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Envoi d'images vers Supabase Storage (clé **secrète**, variables Render uniquement) |
+| `SUPABASE_STORAGE_BUCKET` | Nom du bucket d'images (défaut `portfolio`, créé automatiquement) |
+| `ADMIN_EMAILS` | Administrateurs supplémentaires autorisés (en plus de `ADMIN_EMAIL`) |
+| `ADMIN_LEGACY_LOGIN` | `false` pour désactiver l'ancien compte une fois Supabase Auth en service |
 
 ## Base de données
 
-Tables : `admins`, `projects` (+ `technologies`, `source_url`, `image_url`), `messages`, `services`, `quotes`, `clients`, `testimonials`, `user_sessions`. Le schéma complet est dans `schema.sql` et les migrations ne détruisent aucune donnée existante.
+Tables : `projects` (statut brouillon/publié, date de réalisation, galerie d'images), `services`, `quotes`, `clients`, `testimonials`, `messages`, `site_settings` (informations modifiables du site), `activity_log` (historique des actions), `admin_profiles` (liste blanche des administrateurs), `admins` (ancien compte), `user_sessions`. Le schéma complet est dans **`schema.sql`**, exécuté à chaque démarrage : il est idempotent et ne détruit aucune donnée. Vous pouvez aussi le coller tel quel dans Supabase → SQL Editor.
+
+**RLS (Row Level Security)** est activé sur toutes les tables du site. Le serveur Node se connecte avec le rôle propriétaire, qui n'y est pas soumis ; RLS protège donc l'API REST de Supabase : seuls les projets *publiés*, les services *actifs* et les témoignages *publiés* sont lisibles publiquement. Devis, clients, messages, paramètres, historique et administrateurs n'ont aucune politique : inaccessibles avec la clé publique.
+
+Conversion automatique des devis : `accepté` → `en cours`, `refusé` → `annulé` (nouveaux statuts : nouveau, en discussion, devis envoyé, en cours, terminé, annulé).
 
 Sauvegardes : le plan gratuit ne remplace pas une vraie stratégie de sauvegarde. Exportez régulièrement la base (`pg_dump "$DATABASE_URL" > sauvegarde.sql`, ou l'export du tableau de bord Supabase) et conservez le fichier hors du dépôt.
 
@@ -80,12 +89,24 @@ Sauvegardes : le plan gratuit ne remplace pas une vraie stratégie de sauvegarde
 
 ## Administration (`/admin`)
 
-Vue d'ensemble (chiffres réels uniquement) · Devis · Messages · Projets · Services & tarifs · Témoignages · Clients · Mon compte (changement de mot de passe).
+Menu latéral : Vue d'ensemble · Statistiques et évolution · Demandes de devis · Messages · Projets · Services & tarifs · Témoignages · Clients · Informations du site · Historique · Mon compte. Mode d'emploi détaillé : **[ADMIN-GUIDE.md](ADMIN-GUIDE.md)**.
 
+- **Connexion** : Supabase Auth (email + mot de passe), puis vérification côté serveur que l'email figure dans `admin_profiles`. Un compte Supabase d'une autre application du même projet n'a **aucun** accès. Mot de passe oublié : lien à usage unique envoyé par Supabase.
+- **Images** : envoyées au serveur qui vérifie le contenu réel (JPG, PNG, WebP, 5 Mo maximum, pas de SVG), renomme le fichier puis le stocke dans le bucket public Supabase Storage (persistant, contrairement au disque de Render). Les images d'un projet supprimé ou retirées sont effacées du bucket.
 - Tous les prix du site se modifient dans **Services & tarifs** (prix vide = « sur devis » ; un prix maximum facultatif affiche une fourchette).
-- Un projet décoché « démonstration » s'affiche comme **Projet réel** ; sinon comme **Démonstration**.
-- Un témoignage n'apparaît sur le site que s'il est **publié**. Aucun n'est fourni : n'ajoutez que de vrais avis, avec l'accord du client. La section reste masquée tant qu'il n'y en a aucun.
-- Aucune statistique de visites n'est collectée (pas de traceur) ; le tableau de bord ne compte que les devis et messages enregistrés.
+- Un projet **publié** apparaît automatiquement dans le portfolio ; un **brouillon** reste invisible. Un projet décoché « démonstration » s'affiche comme **Projet réel**.
+- Un témoignage n'apparaît sur le site que s'il est **publié**. Aucun n'est fourni : n'ajoutez que de vrais avis, avec l'accord du client.
+- **Informations du site** : slogan, textes d'introduction, email, WhatsApp, localisation, réseaux sociaux (un champ vide reprend la valeur par défaut).
+- **Historique** : chaque création, modification, suppression, connexion et envoi d'image est enregistré avec l'administrateur et la date (jamais de mot de passe).
+- Aucune statistique de visites n'est collectée (pas de traceur) ; le tableau de bord ne compte que les données réellement enregistrées (devis, projets, clients).
+
+## Configurer Supabase (Auth + Storage)
+
+1. **Variables Render** : `SUPABASE_URL` et `SUPABASE_ANON_KEY` (Supabase → Project Settings → API Keys, clé *publishable*). Pour les images, ajoutez aussi `SUPABASE_SERVICE_ROLE_KEY` (clé *secret*) **uniquement dans Render**.
+2. **Créer votre compte** : Supabase → Authentication → Users → *Add user* → *Create new user*, avec l'email de `ADMIN_EMAIL`, un mot de passe long, et « Auto Confirm User » coché.
+3. **Authentication → URL Configuration** : *Site URL* = `https://VOTRE-SITE`, et ajoutez `https://VOTRE-SITE/admin` aux *Redirect URLs* (sinon le lien « mot de passe oublié » est refusé).
+4. **Authentication → Sign In / Providers** : désactivez *Allow new users to sign up* (le projet Supabase est partagé avec d'autres applications).
+5. Connectez-vous sur `/admin` avec ce compte, vérifiez dans *Mon compte* que la connexion indique « Supabase Auth », puis mettez `ADMIN_LEGACY_LOGIN=false` pour retirer l'ancien accès.
 
 ## Déploiement sur Render
 
@@ -100,19 +121,30 @@ Limites du lancement gratuit (à vérifier dans vos comptes) : le service gratui
 
 ## Sécurité
 
-Contrôle d'accès et validation côté serveur · sessions PostgreSQL, cookie `httpOnly`/`secure`/`sameSite` · mots de passe en bcrypt (coût 12 pour les changements) · CSRF : vérification de l'origine + jeton lié à la session · CSP stricte (aucun script inline) · requêtes SQL paramétrées · affichage via `textContent` (pas de XSS) · limitation de débit sur connexion, contact et devis · champ piège anti-spam · en-têtes Helmet · aucune clé dans le JavaScript du navigateur. Pour un volume réel de spam, ajoutez un CAPTCHA.
+Authentification Supabase Auth + liste blanche serveur · clé `service_role` jamais exposée au navigateur · contrôle du contenu réel des images (signature du fichier) · RLS sur toutes les tables · historique des actions · récupération de compte par lien à usage unique · contrôle d'accès et validation côté serveur · sessions PostgreSQL, cookie `httpOnly`/`secure`/`sameSite` · mots de passe en bcrypt (coût 12 pour les changements) · CSRF : vérification de l'origine + jeton lié à la session · CSP stricte (aucun script inline) · requêtes SQL paramétrées · affichage via `textContent` (pas de XSS) · limitation de débit sur connexion, contact et devis · champ piège anti-spam · en-têtes Helmet · aucune clé dans le JavaScript du navigateur. Pour un volume réel de spam, ajoutez un CAPTCHA.
 
 ## Tests effectués
 
-`npm run check` (syntaxe) puis `npm run smoke` (75 vérifications HTTP) et un parcours navigateur Chromium (44 vérifications), sur PostgreSQL 16 local :
+`npm run check` (syntaxe), `npm run smoke` (API, 137 vérifications) et un parcours navigateur Chromium (32 vérifications, ordinateur et mobile 390 px), sur PostgreSQL 16 local. Supabase Auth et Storage sont simulés par `tests/fake-supabase.js` (aucun appel au vrai projet) :
 
-- **Pages** : 6 pages en 200, titre/description/canonical, aucun marqueur de gabarit résiduel, CSP présente, aucun script inline, sitemap (6 URL), robots.txt, 404 HTML et JSON.
-- **Devis** : 8 cas invalides refusés (nom, email, description, budget, délai, prestation, téléphone, consentement), champ piège, origine étrangère (403), devis valide avec référence, JSON malformé.
-- **Administration** : 401 sans session, mauvais mot de passe, 403 sans jeton CSRF, statuts, doublons (409), URL `javascript:` refusée, identifiants invalides, création/modification/masquage/suppression de services, projets, témoignages (publié/non publié), clients, déconnexion.
-- **Anti-spam** : limitation de débit (429).
-- **Navigateur** : filtres et recherche du portfolio, prestation préremplie depuis un tarif, devis de bout en bout avec référence et lien WhatsApp, menu mobile, absence de défilement horizontal sur 7 pages à 390 px, connexion admin, tous les onglets, création d'un service via l'interface visible ensuite sur le site, zéro erreur JavaScript ni violation CSP.
+```bash
+FAKE_PORT=54399 node tests/fake-supabase.js &
+SUPABASE_URL=http://127.0.0.1:54399 SUPABASE_ANON_KEY=test SUPABASE_SERVICE_ROLE_KEY=test npm start &
+BASE_URL=http://localhost:3000 TEST_ADMIN_EMAIL=... TEST_ADMIN_PASSWORD=... FAKE_URL=http://127.0.0.1:54399 TEST_SUPA_PASSWORD=SupaPass-2026-test npm run smoke
+```
 
-Non testé : l'envoi réel d'email (pas de clé Resend), le déploiement Render et l'accès à votre base Supabase.
+- **Pages et SEO** : 6 pages en 200, titre/description/canonical, CSP, aucun script inline, sitemap, robots.txt, 404.
+- **Devis** : cas invalides refusés, champ piège, origine étrangère (403), référence, JSON malformé.
+- **Administration** : 401 sans session, 403 sans jeton CSRF, mauvais mot de passe, CRUD complet (services, projets, témoignages, clients), doublons (409), URL `javascript:` refusée.
+- **Devis (admin)** : les 6 statuts, ancien statut refusé, notes, recherche (email, référence, injection SQL sans effet), filtre.
+- **Projets** : brouillon invisible du public, publication, galerie (8 maximum), date invalide refusée, projet publié visible avec images et date.
+- **Réglages** : liste blanche de clés, validation (WhatsApp, URL), reprise sur le site public, retour aux valeurs par défaut.
+- **Images** : PNG accepté ; HTML, faux PNG, SVG, > 5 Mo, absence de jeton CSRF refusés ; suppression d'un projet → suppression des images ; message 503 clair si Storage n'est pas configuré.
+- **Supabase Auth** : connexion, compte valide mais hors liste blanche refusé, récupération (réponse identique que le compte existe ou non), jeton d'un compte non autorisé refusé, nouveau mot de passe, changement de mot de passe.
+- **Historique** : créations, modifications, suppressions, réglages, connexions ; aucun mot de passe enregistré.
+- **Navigateur** : connexion, graphiques SVG, recherche/filtre des devis, création d'un brouillon avec image envoyée puis publication visible sur le portfolio public, suppression avec confirmation, modification du slogan visible sur le site, historique, menu mobile, absence de défilement horizontal, zéro erreur JavaScript ni violation CSP.
+
+**Non testé** : la connexion au vrai Supabase Auth/Storage (clés absentes de mon environnement : à vérifier lors de votre première connexion, voir ADMIN-GUIDE.md), l'envoi réel d'email (pas de clé Resend), le lien de récupération reçu par email.
 
 ## À valider avant le lancement public
 

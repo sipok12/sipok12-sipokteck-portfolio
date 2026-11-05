@@ -231,3 +231,8 @@ a.contact-link:hover { border-color: var(--cyan); transform: translateY(-2px); }
   .reveal { opacity: 1; translate: none; }
   .card, .device { transform: none; }
 }
+
+/* Galerie d'images d'un projet */
+.project-gallery { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .6rem; }
+.project-gallery a { display: block; width: 56px; height: 56px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.14); }
+.project-gallery img { width: 100%; height: 100%; object-fit: cover; display: block; }

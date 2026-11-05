@@ -4,6 +4,7 @@ const { query } = require("../db");
 const { cleanString, readFields, asyncRoute } = require("../lib/validate");
 const { notifyQuote, notifyMessage } = require("../lib/mailer");
 const { absoluteUrl, quoteReference, BUDGETS, DEADLINES } = require("../lib/site");
+const { getSettings } = require("../lib/settings");
 
 const router = express.Router();
 
@@ -17,30 +18,36 @@ const quoteLimiter = rateLimit({
   message: { error: "Trop de demandes envoyées depuis votre connexion. Réessayez plus tard ou écrivez-nous sur WhatsApp." }
 });
 
-router.get("/config", (req, res) => {
+// Les réglages modifiés dans l'administration (table site_settings) priment sur les valeurs par défaut / variables d'environnement.
+router.get("/config", asyncRoute(async (req, res) => {
+  const set = await getSettings().catch(() => ({}));
+  const digits = (value, fallback) => String(value || fallback || "").replace(/\D/g, "");
+  const social = {
+    github: set.social_github || process.env.SOCIAL_GITHUB || "https://github.com/sipok12",
+    linkedin: set.social_linkedin || process.env.SOCIAL_LINKEDIN,
+    facebook: set.social_facebook || process.env.SOCIAL_FACEBOOK,
+    instagram: set.social_instagram || process.env.SOCIAL_INSTAGRAM,
+    tiktok: set.social_tiktok || process.env.SOCIAL_TIKTOK,
+    x: set.social_x || process.env.SOCIAL_X
+  };
   res.json({
     name: "Jean-Paul AHITE",
     brand: "SIPOKTECH DIGITAL",
-    tagline: "Votre vision, notre créativité, le numérique comme solution.",
-    location: "Lomé, Togo",
-    email: process.env.CONTACT_EMAIL || "jeanpaulahite35@gmail.com",
-    whatsappPrimary: (process.env.WHATSAPP_PRIMARY || process.env.WHATSAPP_MAIN || "22878003599").replace(/\D/g, ""),
-    whatsappSecondary: (process.env.WHATSAPP_SECONDARY || "22871344338").replace(/\D/g, ""),
+    tagline: set.slogan || "Votre vision, notre créativité, le numérique comme solution.",
+    heroLead: set.hero_lead || "",
+    aboutIntro: set.about_intro || "",
+    location: set.location || "Lomé, Togo",
+    email: set.contact_email || process.env.CONTACT_EMAIL || "jeanpaulahite35@gmail.com",
+    whatsappPrimary: digits(set.whatsapp_primary, process.env.WHATSAPP_PRIMARY || process.env.WHATSAPP_MAIN || "22878003599"),
+    whatsappSecondary: digits(set.whatsapp_secondary, process.env.WHATSAPP_SECONDARY || "22871344338"),
     quoteOptions: { budgets: BUDGETS, deadlines: DEADLINES },
-    social: Object.fromEntries(Object.entries({
-      github: process.env.SOCIAL_GITHUB || "https://github.com/sipok12",
-      linkedin: process.env.SOCIAL_LINKEDIN,
-      facebook: process.env.SOCIAL_FACEBOOK,
-      instagram: process.env.SOCIAL_INSTAGRAM,
-      tiktok: process.env.SOCIAL_TIKTOK,
-      x: process.env.SOCIAL_X
-    }).filter(([, url]) => typeof url === "string" && /^https?:\/\//i.test(url)))
+    social: Object.fromEntries(Object.entries(social).filter(([, url]) => typeof url === "string" && /^https?:\/\//i.test(url)))
   });
-});
+}));
 
 router.get("/services", asyncRoute(async (req, res) => {
   const result = await query(
-    `SELECT slug, title, summary, details, icon, starting_price, price_max, price_unit, conditions
+    `SELECT slug, title, summary, details, icon, image_url, starting_price, price_max, price_unit, conditions
      FROM services WHERE active ORDER BY position, id`
   );
   res.json({
@@ -50,6 +57,7 @@ router.get("/services", asyncRoute(async (req, res) => {
       summary: s.summary,
       details: s.details.split("\n").map((line) => line.trim()).filter(Boolean),
       icon: s.icon,
+      imageUrl: s.image_url,
       startingPrice: s.starting_price,
       priceMax: s.price_max,
       priceUnit: s.price_unit,
@@ -58,15 +66,19 @@ router.get("/services", asyncRoute(async (req, res) => {
   });
 }));
 
+// Seuls les projets « publiés » sont visibles : un brouillon n'apparaît jamais sur le site public.
 router.get("/projects", asyncRoute(async (req, res) => {
   const result = await query(
-    `SELECT id, title, category, description, url, source_url, image_url, technologies, icon, featured, demo, created_at
-     FROM projects ORDER BY featured DESC, created_at DESC`
+    `SELECT id, title, category, description, url, source_url, image_url, images, technologies, icon, featured, demo, realized_on, created_at
+     FROM projects WHERE status = 'published'
+     ORDER BY featured DESC, COALESCE(realized_on, created_at::date) DESC, id DESC`
   );
   // Robustesse : « technologies » est toujours renvoyé sous forme de texte (« A, B, C »).
   res.json({
     projects: result.rows.map((p) => ({
       ...p,
+      images: Array.isArray(p.images) ? p.images : [],
+      realized_on: p.realized_on instanceof Date ? p.realized_on.toISOString().slice(0, 10) : p.realized_on,
       technologies: Array.isArray(p.technologies) ? p.technologies.join(", ") : String(p.technologies || "")
     }))
   });

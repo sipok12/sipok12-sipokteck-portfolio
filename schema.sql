@@ -134,3 +134,101 @@ CREATE INDEX IF NOT EXISTS services_position_idx ON services (position, id);
 CREATE INDEX IF NOT EXISTS quotes_created_at_idx ON quotes (created_at DESC);
 CREATE INDEX IF NOT EXISTS quotes_status_idx ON quotes (status);
 CREATE INDEX IF NOT EXISTS testimonials_published_idx ON testimonials (published, created_at DESC);
+
+-- =====================================================================
+-- Version 3 : administration complète (Supabase Auth, Storage, historique)
+-- =====================================================================
+
+-- Projets : brouillon / publié, date de réalisation, galerie d'images (liste d'URL).
+-- image_url reste l'image de couverture ; les projets existants restent publiés.
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS status VARCHAR(10) NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'published'));
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS realized_on DATE;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS images JSONB NOT NULL DEFAULT '[]'::jsonb;
+CREATE INDEX IF NOT EXISTS projects_status_idx ON projects (status, created_at DESC);
+
+-- Services : image facultative (en plus de l'icône).
+ALTER TABLE services ADD COLUMN IF NOT EXISTS image_url TEXT;
+
+-- Demandes : nouveaux statuts (nouveau, en discussion, devis envoyé, en cours, terminé, annulé).
+-- Conversion des anciennes valeurs : accepté -> en cours, refusé -> annulé.
+DO $$
+DECLARE c RECORD;
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'quotes'::regclass AND conname = 'quotes_status_check'
+      AND pg_get_constraintdef(oid) LIKE '%en discussion%'
+  ) THEN
+    FOR c IN SELECT conname FROM pg_constraint
+             WHERE conrelid = 'quotes'::regclass AND contype = 'c' AND pg_get_constraintdef(oid) LIKE '%status%'
+    LOOP
+      EXECUTE format('ALTER TABLE quotes DROP CONSTRAINT %I', c.conname);
+    END LOOP;
+    UPDATE quotes SET status = 'en cours' WHERE status = 'accepté';
+    UPDATE quotes SET status = 'annulé' WHERE status = 'refusé';
+    ALTER TABLE quotes ADD CONSTRAINT quotes_status_check
+      CHECK (status IN ('nouveau', 'en discussion', 'devis envoyé', 'en cours', 'terminé', 'annulé'));
+  END IF;
+END $$;
+
+-- Administrateurs autorisés. La connexion se fait avec Supabase Auth ; ce tableau est la liste blanche :
+-- un compte Supabase qui n'y figure pas n'a AUCUN accès à /admin (le projet Supabase peut servir à d'autres applications).
+CREATE TABLE IF NOT EXISTS admin_profiles (
+  id BIGSERIAL PRIMARY KEY,
+  email VARCHAR(254) NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL DEFAULT 'Administrateur',
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Informations générales du site (slogan, contacts, réseaux sociaux, textes). Une ligne par réglage.
+CREATE TABLE IF NOT EXISTS site_settings (
+  key VARCHAR(60) PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Historique des actions de l'administration (jamais de mot de passe ni de secret).
+CREATE TABLE IF NOT EXISTS activity_log (
+  id BIGSERIAL PRIMARY KEY,
+  admin_email VARCHAR(254) NOT NULL DEFAULT '',
+  action VARCHAR(30) NOT NULL,
+  entity VARCHAR(30) NOT NULL DEFAULT '',
+  entity_id BIGINT,
+  summary VARCHAR(300) NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS activity_log_created_at_idx ON activity_log (created_at DESC);
+
+-- ---------------------------------------------------------------------
+-- Row Level Security. Le serveur Node se connecte avec le rôle propriétaire (il n'est pas soumis à RLS).
+-- RLS protège donc l'API REST de Supabase : sans politique, une table est inaccessible avec la clé publique.
+-- ---------------------------------------------------------------------
+ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE quotes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
+
+-- Lecture publique limitée au contenu déjà visible sur le site (rôles propres à Supabase).
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon')
+     AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    DROP POLICY IF EXISTS "Public can read portfolio projects" ON projects;
+    DROP POLICY IF EXISTS "Public reads published projects" ON projects;
+    CREATE POLICY "Public reads published projects" ON projects FOR SELECT TO anon, authenticated USING (status = 'published');
+    DROP POLICY IF EXISTS "Public can read active services" ON services;
+    DROP POLICY IF EXISTS "Public reads active services" ON services;
+    CREATE POLICY "Public reads active services" ON services FOR SELECT TO anon, authenticated USING (active = true);
+    DROP POLICY IF EXISTS "Public can read published testimonials" ON testimonials;
+    DROP POLICY IF EXISTS "Public reads published testimonials" ON testimonials;
+    CREATE POLICY "Public reads published testimonials" ON testimonials FOR SELECT TO anon, authenticated USING (published = true);
+  END IF;
+END $$;
+-- quotes, clients, messages, admins, admin_profiles, site_settings, activity_log : aucune politique = inaccessibles via l'API REST.

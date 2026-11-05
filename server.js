@@ -32,7 +32,8 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      imgSrc: ["'self'", "data:", "https:"],
+      // En développement, le faux stockage de test sert les images en http ; en production : https uniquement.
+      imgSrc: ["'self'", "data:", "https:", ...(isProduction ? [] : ["http:"])],
       connectSrc: ["'self'"],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],

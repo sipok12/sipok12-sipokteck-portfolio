@@ -11,46 +11,80 @@
   <script src="/admin.js" defer></script>
 </head>
 <body>
-  <header class="admin-header">
-    <a class="admin-brand" href="/">SIPOKTECH DIGITAL <span>/ ADMIN</span></a>
-    <a class="back-link" href="/">← Voir le site public</a>
-  </header>
-  <main class="admin-main">
-    <section id="login-view" class="login-card">
+  <!-- Connexion, mot de passe oublié et nouveau mot de passe -->
+  <div id="login-view" class="login-wrap" hidden>
+    <section class="login-card">
+      <p class="brand-line">SIPOKTECH DIGITAL <span>/ ADMIN</span></p>
       <p class="eyebrow">Espace privé</p>
-      <h1>Administration</h1>
-      <p class="muted">Connectez-vous pour gérer les devis, messages, projets, services et tarifs.</p>
+
       <form id="login-form">
+        <h1>Administration</h1>
+        <p class="muted">Connectez-vous pour gérer le site, les demandes et les projets.</p>
         <label for="login-email">Email administrateur</label>
         <input id="login-email" name="email" type="email" required autocomplete="username">
         <label for="login-password">Mot de passe</label>
         <input id="login-password" name="password" type="password" required autocomplete="current-password">
-        <button class="btn primary" type="submit">Se connecter</button>
+        <button class="btn primary block" type="submit">Se connecter</button>
         <p class="feedback" id="login-feedback" role="status"></p>
+        <p class="login-links"><button class="link-button" id="show-recover" type="button">Mot de passe oublié ?</button> · <a href="/">Voir le site public</a></p>
+      </form>
+
+      <form id="recover-form" hidden>
+        <h1>Mot de passe oublié</h1>
+        <p class="muted">Saisissez l'email du compte administrateur : un lien de réinitialisation à usage unique vous sera envoyé.</p>
+        <label for="recover-email">Email administrateur</label>
+        <input id="recover-email" name="email" type="email" required autocomplete="username">
+        <button class="btn primary block" type="submit">Envoyer le lien</button>
+        <p class="feedback" id="recover-feedback" role="status"></p>
+        <p class="login-links"><button class="link-button" data-back-login type="button">← Retour à la connexion</button></p>
+      </form>
+
+      <form id="reset-form" hidden>
+        <h1>Nouveau mot de passe</h1>
+        <p class="muted">Choisissez un mot de passe long et unique (12 caractères minimum).</p>
+        <label for="reset-password">Nouveau mot de passe</label>
+        <input id="reset-password" name="password" type="password" required minlength="12" autocomplete="new-password">
+        <button class="btn primary block" type="submit">Enregistrer le mot de passe</button>
+        <p class="feedback" id="reset-feedback" role="status"></p>
+        <p class="login-links"><button class="link-button" data-back-login type="button">← Retour à la connexion</button></p>
       </form>
     </section>
+  </div>
 
-    <section id="dashboard" hidden>
-      <div class="dashboard-heading">
-        <div>
-          <p class="eyebrow">Tableau de bord</p>
-          <h1>Bonjour, <span id="admin-name">Admin</span></h1>
+  <!-- Espace d'administration : menu latéral + barre supérieure -->
+  <div id="app" class="shell" hidden>
+    <aside id="sidebar" class="sidebar" aria-label="Navigation de l'administration">
+      <a class="admin-brand" href="/admin">SIPOKTECH DIGITAL <span>/ ADMIN</span></a>
+      <nav id="nav" class="nav">
+        <button class="nav-item active" data-tab="dashboard" type="button">Vue d'ensemble</button>
+        <button class="nav-item" data-tab="stats" type="button">Statistiques et évolution</button>
+        <button class="nav-item" data-tab="quotes" type="button">Demandes de devis <span class="count" data-count="quotes" hidden></span></button>
+        <button class="nav-item" data-tab="messages" type="button">Messages <span class="count" data-count="messages" hidden></span></button>
+        <button class="nav-item" data-tab="projects" type="button">Projets</button>
+        <button class="nav-item" data-tab="services" type="button">Services &amp; tarifs</button>
+        <button class="nav-item" data-tab="testimonials" type="button">Témoignages</button>
+        <button class="nav-item" data-tab="clients" type="button">Clients</button>
+        <button class="nav-item" data-tab="settings" type="button">Informations du site</button>
+        <button class="nav-item" data-tab="activity" type="button">Historique</button>
+        <button class="nav-item" data-tab="account" type="button">Mon compte</button>
+      </nav>
+      <a class="back-link" href="/" target="_blank" rel="noopener">Voir le site public ↗</a>
+    </aside>
+    <div id="backdrop" class="backdrop" hidden></div>
+
+    <div class="content">
+      <header class="topbar">
+        <button id="menu-button" class="icon-button" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Ouvrir le menu">☰</button>
+        <h1 id="page-title">Vue d'ensemble</h1>
+        <div class="topbar-right">
+          <span class="topbar-user">Bonjour, <strong id="admin-name">Admin</strong></span>
+          <button class="btn ghost small" id="logout-button" type="button">Déconnexion</button>
         </div>
-        <button class="btn ghost" id="logout-button" type="button">Déconnexion</button>
-      </div>
-      <div class="tabs" role="tablist" aria-label="Sections de l'administration">
-        <button class="tab active" role="tab" aria-selected="true" data-tab="dashboard" type="button">Vue d'ensemble</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="quotes" type="button">Devis</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="messages" type="button">Messages</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="projects" type="button">Projets</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="services" type="button">Services &amp; tarifs</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="testimonials" type="button">Témoignages</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="clients" type="button">Clients</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="account" type="button">Mon compte</button>
-      </div>
-      <section id="view" class="panel" role="tabpanel" aria-live="polite"></section>
-    </section>
-  </main>
-  <footer class="admin-footer">SIPOKTECH DIGITAL · Administration sécurisée</footer>
+      </header>
+      <main id="view" class="view" tabindex="-1" aria-live="polite"></main>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

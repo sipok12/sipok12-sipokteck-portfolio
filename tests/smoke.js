@@ -4,6 +4,9 @@
 const BASE = (process.env.BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
 const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD;
+// Facultatif : faux serveur Supabase (tests/fake-supabase.js) pour tester Supabase Auth et Storage.
+const FAKE = (process.env.FAKE_URL || "").replace(/\/+$/, "");
+const SUPA_PASSWORD = process.env.TEST_SUPA_PASSWORD;
 
 let passed = 0;
 let failed = 0;
@@ -51,6 +54,7 @@ const validQuote = {
     check(`GET ${path} sans « __SITE_URL__ » ni « {{ » résiduels`, !r.text.includes("__SITE_URL__") && !r.text.includes("{{"));
   }
   const home = await call("GET", "/", { raw: true });
+  check("Accueil : texte d'introduction modifiable depuis l'administration", home.text.includes('data-setting="hero_lead"'));
   check("Accueil : en-têtes de sécurité (CSP, nosniff)", Boolean(home.headers.get("content-security-policy")) && home.headers.get("x-content-type-options") === "nosniff");
   check("Accueil : aucun script inline (compatible CSP)", !/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>/.test(home.text));
   check("Lien d'administration absent des pages publiques", !home.text.includes('href="/admin"'));
@@ -102,7 +106,7 @@ const validQuote = {
   check("JSON malformé : 400 propre", badJson.status === 400);
 
   console.log("\nAdministration (protection serveur)");
-  for (const [method, path] of [["GET", "/api/admin/stats"], ["GET", "/api/admin/quotes"], ["GET", "/api/admin/messages"], ["GET", "/api/admin/clients"], ["POST", "/api/admin/services"], ["DELETE", "/api/admin/projects/1"]]) {
+  for (const [method, path] of [["GET", "/api/admin/stats"], ["GET", "/api/admin/quotes"], ["GET", "/api/admin/messages"], ["GET", "/api/admin/clients"], ["GET", "/api/admin/activity"], ["GET", "/api/admin/settings"], ["PUT", "/api/admin/settings"], ["POST", "/api/admin/uploads"], ["POST", "/api/admin/services"], ["DELETE", "/api/admin/projects/1"]]) {
     const r = await call(method, path, { body: method === "GET" ? undefined : {} });
     check(`${method} ${path} sans session → 401`, r.status === 401, `status ${r.status}`);
   }
@@ -169,6 +173,99 @@ const validQuote = {
     const weirdId = await call("DELETE", "/api/admin/projects/abc", { auth: true });
     check("Identifiant non numérique → 400", weirdId.status === 400);
 
+
+    console.log("\nDevis : statuts, recherche et filtres");
+    for (const status of ["nouveau", "en discussion", "devis envoyé", "en cours", "terminé", "annulé"]) {
+      const r = await call("PATCH", `/api/admin/quotes/${mine.id}`, { auth: true, body: { status, notes: "Note interne de test" } });
+      check(`Statut « ${status} » accepté`, r.status === 200 && r.json.item.status === status && r.json.item.notes === "Note interne de test");
+    }
+    const oldStatus = await call("PATCH", `/api/admin/quotes/${mine.id}`, { auth: true, body: { status: "accepté" } });
+    check("Ancien statut « accepté » refusé", oldStatus.status === 400);
+    await call("PATCH", `/api/admin/quotes/${mine.id}`, { auth: true, body: { status: "en discussion", notes: "" } });
+    const byEmail = await call("GET", `/api/admin/quotes?q=${encodeURIComponent(validQuote.email)}`, { auth: true });
+    check("Recherche d'une demande par email", byEmail.json.items.some((q) => q.id === mine.id));
+    const byRef = await call("GET", `/api/admin/quotes?q=${encodeURIComponent(ok.json.reference)}`, { auth: true });
+    check("Recherche d'une demande par référence", byRef.json.items.length === 1 && byRef.json.items[0].id === mine.id);
+    const noMatch = await call("GET", "/api/admin/quotes?q=zzz-aucun-resultat", { auth: true });
+    check("Recherche sans résultat", noMatch.status === 200 && noMatch.json.items.length === 0);
+    const injection = await call("GET", `/api/admin/quotes?q=${encodeURIComponent("'; DROP TABLE quotes; --")}`, { auth: true });
+    check("Recherche : tentative d'injection SQL sans effet", injection.status === 200 && injection.json.items.length === 0);
+    const filtered = await call("GET", "/api/admin/quotes?status=en%20discussion", { auth: true });
+    check("Filtre par statut", filtered.json.items.every((q) => q.status === "en discussion") && filtered.json.items.some((q) => q.id === mine.id));
+    const stats2 = await call("GET", "/api/admin/stats", { auth: true });
+    check("Statistiques : 12 mois d'évolution réels", stats2.json.monthly.length === 12 && stats2.json.monthly.at(-1).quotes >= 1 && stats2.json.visitors === null);
+    check("Statistiques : demandes en attente comptées", stats2.json.totals.quotes_pending >= 1 && typeof stats2.json.quotesByStatus["en discussion"] === "number");
+
+    console.log("\nProjets : brouillon, galerie, date de réalisation");
+    const draftBody = { title: "Projet brouillon", category: "Test", description: "Un projet encore en brouillon.", status: "draft", realized_on: "2026-03-15",
+      images: ["https://example.com/a.jpg", "https://example.com/b.png"], technologies: "HTML", icon: "T", featured: false, demo: false };
+    const draft = await call("POST", "/api/admin/projects", { auth: true, body: draftBody });
+    check("Brouillon créé avec galerie, couverture et date", draft.status === 201 && draft.json.item.status === "draft" && draft.json.item.images.length === 2
+      && draft.json.item.image_url === "https://example.com/a.jpg" && draft.json.item.realized_on === "2026-03-15", JSON.stringify(draft.json));
+    const hiddenDraft = await call("GET", "/api/projects");
+    check("Un brouillon n'apparaît pas sur le site public", !hiddenDraft.json.projects.some((p) => p.title === "Projet brouillon"));
+    check("Date de réalisation invalide refusée", (await call("POST", "/api/admin/projects", { auth: true, body: { ...draftBody, realized_on: "2026-13-45" } })).status === 400);
+    check("Statut de projet invalide refusé", (await call("POST", "/api/admin/projects", { auth: true, body: { ...draftBody, status: "archivé" } })).status === 400);
+    check("Plus de 8 images refusé", (await call("POST", "/api/admin/projects", { auth: true, body: { ...draftBody, images: Array.from({ length: 9 }, (_, i) => `https://example.com/${i}.jpg`) } })).status === 400);
+    check("Image avec une adresse non http(s) refusée", (await call("POST", "/api/admin/projects", { auth: true, body: { ...draftBody, images: ["javascript:alert(1)"] } })).status === 400);
+    const published = await call("PUT", `/api/admin/projects/${draft.json.item.id}`, { auth: true, body: { ...draftBody, status: "published" } });
+    check("Publication du projet", published.status === 200 && published.json.item.status === "published");
+    const shownProject = (await call("GET", "/api/projects")).json.projects.find((p) => p.title === "Projet brouillon");
+    check("Projet publié : visible automatiquement avec galerie et date", Boolean(shownProject) && shownProject.images.length === 2 && shownProject.realized_on === "2026-03-15");
+    const adminProjects = await call("GET", "/api/admin/projects", { auth: true });
+    check("L'administration voit aussi les brouillons", adminProjects.json.items.some((p) => p.id === draft.json.item.id));
+
+    console.log("\nInformations du site");
+    const settings = await call("GET", "/api/admin/settings", { auth: true });
+    check("Réglages : liste blanche de champs", settings.status === 200 && settings.json.fields.some((f) => f.key === "slogan") && !settings.json.fields.some((f) => /password|secret|key/i.test(f.key)));
+    check("Numéro WhatsApp invalide refusé", (await call("PUT", "/api/admin/settings", { auth: true, body: { values: { whatsapp_primary: "abc" } } })).status === 400);
+    check("Adresse de réseau social invalide refusée", (await call("PUT", "/api/admin/settings", { auth: true, body: { values: { social_linkedin: "javascript:alert(1)" } } })).status === 400);
+    const setOk = await call("PUT", "/api/admin/settings", { auth: true, body: { values: { slogan: "Slogan de test", whatsapp_primary: "22890000000", location: "Kara, Togo", social_linkedin: "https://linkedin.com/in/test", hero_lead: "", contact_email: "" } } });
+    check("Réglages enregistrés", setOk.status === 200, JSON.stringify(setOk.json));
+    const cfg2 = await call("GET", "/api/config");
+    check("Le site public reprend les réglages modifiés", cfg2.json.tagline === "Slogan de test" && cfg2.json.whatsappPrimary === "22890000000" && cfg2.json.location === "Kara, Togo" && cfg2.json.social.linkedin === "https://linkedin.com/in/test");
+    const unknownKey = await call("PUT", "/api/admin/settings", { auth: true, body: { values: { slogan: "", whatsapp_primary: "", location: "", social_linkedin: "", is_admin: "true" } } });
+    const cfg3 = await call("GET", "/api/config");
+    check("Réglages vidés : retour aux valeurs par défaut", unknownKey.status === 200 && cfg3.json.tagline.includes("Votre vision") && cfg3.json.whatsappPrimary === "22878003599");
+    const stored = await call("GET", "/api/admin/settings", { auth: true });
+    check("Clé de réglage inconnue ignorée", !("is_admin" in stored.json.values));
+
+    console.log("\nImages (Supabase Storage)");
+    const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64, 1)]);
+    const upload = (body, type, { token = csrf } = {}) => fetch(`${BASE}/api/admin/uploads?folder=projects`, {
+      method: "POST", headers: { "Content-Type": type, Cookie: cookie, ...(token ? { "X-CSRF-Token": token } : {}) }, body });
+    if (!FAKE) {
+      const r = await upload(png, "image/png");
+      check("Sans configuration Storage : message clair (503)", r.status === 503);
+    } else {
+      const r = await upload(png, "image/png");
+      const data = await r.json();
+      check("Envoi d'une image PNG", r.status === 201 && /\/storage\/v1\/object\/public\/portfolio\/projects\/\d{4}\/[0-9a-f-]{36}\.png$/.test(data.url), JSON.stringify(data));
+      check("Envoi sans jeton CSRF refusé", (await upload(png, "image/png", { token: "" })).status === 403);
+      check("Type de fichier non image refusé", (await upload(Buffer.from("<script>alert(1)</script>"), "text/html")).status === 415);
+      check("Faux PNG (contenu ≠ type annoncé) refusé", (await upload(Buffer.from("pas une image du tout, juste du texte"), "image/png")).status === 415);
+      check("SVG refusé (script possible)", (await upload(Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'/>"), "image/svg+xml")).status === 415);
+      const big = Buffer.concat([png, Buffer.alloc(5.5 * 1024 * 1024)]);
+      check("Image de plus de 5 Mo refusée", (await upload(big, "image/png")).status === 413);
+      const state = await (await fetch(`${FAKE}/__state`)).json();
+      check("Le bucket public est créé une fois, les envois valides arrivent dans Storage", state.buckets.includes("portfolio") && state.uploads.length === 1 && state.uploads[0].type === "image/png");
+      check("Aucun appel Supabase sans clé « apikey »", state.missingApikey === 0);
+      const withImage = await call("POST", "/api/admin/projects", { auth: true, body: { ...draftBody, title: "Projet avec image envoyée", images: [data.url] } });
+      await call("DELETE", `/api/admin/projects/${withImage.json.item.id}`, { auth: true });
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      const after = await (await fetch(`${FAKE}/__state`)).json();
+      check("Supprimer un projet supprime ses images dans Storage", after.deleted.some((p) => data.url.endsWith(p)), JSON.stringify(after.deleted));
+    }
+    await call("DELETE", `/api/admin/projects/${draft.json.item.id}`, { auth: true });
+
+    console.log("\nHistorique des actions");
+    const activity = await call("GET", "/api/admin/activity", { auth: true });
+    const log = activity.json.items || [];
+    check("L'historique enregistre les créations, modifications et suppressions", ["create", "update", "delete"].every((a) => log.some((i) => i.action === a)));
+    check("L'historique indique l'administrateur et la date", log.every((i) => i.created_at && i.admin_email));
+    check("L'historique enregistre la modification des réglages", log.some((i) => i.entity === "settings" && i.action === "update"));
+    check("Aucun mot de passe dans l'historique", !JSON.stringify(log).includes(ADMIN_PASSWORD));
+
     // Nettoyage des données de test
     const clients = await call("GET", "/api/admin/clients", { auth: true });
     for (const c of clients.json.items.filter((x) => x.email === validQuote.email)) await call("DELETE", `/api/admin/clients/${c.id}`, { auth: true });
@@ -180,6 +277,41 @@ const validQuote = {
     check("Déconnexion", out.status === 200);
     const after = await call("GET", "/api/admin/stats", { auth: true });
     check("Après déconnexion : accès refusé", after.status === 401);
+
+    if (SUPA_PASSWORD && FAKE) {
+      console.log("\nSupabase Auth (liste blanche, récupération du mot de passe)");
+      cookie = ""; csrf = "";
+      const wrong = await call("POST", "/api/admin/login", { body: { email: ADMIN_EMAIL, password: "Mauvais-mot-de-passe-1234" } });
+      check("Mauvais mot de passe → 401", wrong.status === 401);
+      const other = await call("POST", "/api/admin/login", { body: { email: "autre-app@test.local", password: "AutreAppPass-2026" } });
+      check("Compte Supabase valide mais hors liste blanche → 401", other.status === 401);
+      const supa = await call("POST", "/api/admin/login", { body: { email: ADMIN_EMAIL, password: SUPA_PASSWORD } });
+      check("Connexion avec Supabase Auth", supa.status === 200 && supa.json.capabilities.authMethod === "supabase" && Boolean(supa.json.csrfToken), JSON.stringify(supa.json));
+      csrf = supa.json.csrfToken;
+      const me = await call("GET", "/api/admin/me", { auth: true });
+      check("Session ouverte (/me)", me.status === 200 && me.json.admin.email === ADMIN_EMAIL);
+      const act2 = await call("GET", "/api/admin/activity", { auth: true });
+      check("La connexion Supabase est dans l'historique", act2.json.items.some((i) => i.action === "login" && /Supabase/.test(i.summary)));
+      await call("POST", "/api/admin/logout", { auth: true, body: {} });
+
+      const rec = await call("POST", "/api/admin/recover", { body: { email: ADMIN_EMAIL } });
+      const recUnknown = await call("POST", "/api/admin/recover", { body: { email: "inconnu@example.com" } });
+      check("Récupération : même réponse que le compte existe ou non", rec.status === 200 && recUnknown.status === 200 && rec.json.message === recUnknown.json.message);
+      const state2 = await (await fetch(`${FAKE}/__state`)).json();
+      check("Email de récupération envoyé uniquement au compte autorisé", state2.recoveries.length === 1 && state2.recoveries[0].email === ADMIN_EMAIL && state2.recoveries[0].redirectTo === `${BASE}/admin`, JSON.stringify(state2.recoveries));
+      check("Nouveau mot de passe trop court refusé", (await call("POST", "/api/admin/recovery", { body: { accessToken: `tok_${ADMIN_EMAIL}`, password: "court" } })).status === 400);
+      check("Jeton d'un compte hors liste blanche refusé", (await call("POST", "/api/admin/recovery", { body: { accessToken: "tok_autre-app@test.local", password: "Un-Nouveau-Mot-De-Passe-1" } })).status === 403);
+      const reset = await call("POST", "/api/admin/recovery", { body: { accessToken: `tok_${ADMIN_EMAIL}`, password: "Un-Nouveau-Mot-De-Passe-1" } });
+      check("Nouveau mot de passe enregistré via le lien de récupération", reset.status === 200, JSON.stringify(reset.json));
+      const relog = await call("POST", "/api/admin/login", { body: { email: ADMIN_EMAIL, password: "Un-Nouveau-Mot-De-Passe-1" } });
+      check("Connexion avec le nouveau mot de passe", relog.status === 200 && relog.json.capabilities.authMethod === "supabase");
+      csrf = relog.json.csrfToken;
+      const change = await call("POST", "/api/admin/password", { auth: true, body: { current: "Un-Nouveau-Mot-De-Passe-1", next: "Encore-Un-Autre-Mot-2" } });
+      check("Changement de mot de passe (Supabase)", change.status === 200, JSON.stringify(change.json));
+      const badChange = await call("POST", "/api/admin/password", { auth: true, body: { current: "faux", next: "Encore-Un-Autre-Mot-3" } });
+      check("Changement refusé si le mot de passe actuel est faux", badChange.status === 403);
+      await call("POST", "/api/admin/logout", { auth: true, body: {} });
+    }
   }
 
   console.log("\nProtection anti-spam (limitation de débit)");

@@ -1,4 +1,6 @@
-const { Pool } = require("pg");
+const { Pool, types } = require("pg");
+// Une colonne DATE reste du texte « AAAA-MM-JJ » (pas de conversion de fuseau horaire).
+types.setTypeParser(1082, (value) => value);
 
 if (!process.env.DATABASE_URL) {
   console.warn("DATABASE_URL absent : le serveur ne pourra pas accéder à PostgreSQL.");

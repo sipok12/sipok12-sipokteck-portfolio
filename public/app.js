@@ -102,6 +102,14 @@
     } else {
       media.append(h("span", { "aria-hidden": "true", text: project.icon || "💻" }));
     }
+    const gallery = (Array.isArray(project.images) ? project.images : []).slice(1, 6).map((src) => {
+      const safe = SD.safeUrl(src);
+      return safe ? h("a", { href: safe, target: "_blank", rel: "noopener noreferrer", "aria-label": `Agrandir une image de ${project.title}` },
+        h("img", { src: safe, alt: "", loading: "lazy", decoding: "async" })) : null;
+    }).filter(Boolean);
+    const when = project.realized_on && /^\d{4}-\d{2}-\d{2}$/.test(project.realized_on)
+      ? new Date(`${project.realized_on}T00:00:00Z`).toLocaleDateString("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" })
+      : "";
     const rawTechs = Array.isArray(project.technologies) ? project.technologies : String(project.technologies || "").split(",");
     const techs = rawTechs.map((t) => String(t).trim()).filter(Boolean);
     const links = [];
@@ -112,11 +120,13 @@
 
     return h("article", { class: "card project-card", "data-tilt": "" },
       media,
+      gallery.length ? h("div", { class: "project-gallery" }, gallery) : null,
       h("div", { class: "badges" },
         h("span", { class: isDemo ? "badge badge-demo" : "badge badge-real", text: isDemo ? "Démonstration" : "Projet réel" }),
         project.featured ? h("span", { class: "badge badge-star", text: "À la une" }) : null,
         h("span", { class: "badge badge-cat", text: project.category })),
       h("h3", { text: project.title }),
+      when ? h("p", { class: "fineprint", text: `Réalisé en ${when}` }) : null,
       h("p", { class: "muted", text: project.description }),
       techs.length ? h("ul", { class: "tags" }, techs.map((t) => h("li", { text: t }))) : null,
       links.length ? h("div", { class: "card-foot links" }, links) : null);
@@ -197,6 +207,12 @@
       el.href = `mailto:${config.email}`;
       const target = el.querySelector("strong") || el;
       target.textContent = config.email;
+    });
+    // Textes modifiables depuis l'administration (le contenu HTML par défaut reste affiché s'ils sont vides).
+    const texts = { slogan: config.tagline, hero_lead: config.heroLead, about_intro: config.aboutIntro };
+    document.querySelectorAll("[data-setting]").forEach((el) => {
+      const value = texts[el.dataset.setting];
+      if (value) el.textContent = value;
     });
     document.querySelectorAll("[data-social]").forEach((box) => {
       box.replaceChildren(...Object.entries(config.social || {}).map(([key, url]) => {
