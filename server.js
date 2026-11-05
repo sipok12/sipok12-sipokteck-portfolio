@@ -97,6 +97,8 @@ app.get("/admin", (req, res) => {
 const googleFile = path.join(__dirname, "google840922cc77aec56d.html");
 if (fs.existsSync(googleFile)) app.get("/google840922cc77aec56d.html", (req, res) => res.sendFile(googleFile));
 
+// Les fichiers de l'administration sont revalidés à chaque ouverture : jamais de page admin avec un ancien script en cache.
+app.use(["/admin.js", "/admin.css"], (req, res, next) => { res.set("Cache-Control", "no-cache"); next(); });
 app.use(express.static(publicDir, { extensions: ["html"], index: false, maxAge: isProduction ? "1h" : 0 }));
 
 app.use((req, res) => {
