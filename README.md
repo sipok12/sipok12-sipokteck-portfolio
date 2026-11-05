@@ -152,4 +152,4 @@ BASE_URL=http://localhost:3000 TEST_ADMIN_EMAIL=... TEST_ADMIN_PASSWORD=... FAKE
 - **Page À propos** (parcours) et **conditions générales** de la page Tarifs : textes sobres et génériques, à relire.
 - **Projets** : les trois projets sont des démonstrations ; ajoutez vos vrais projets (liens, code source) et décochez « démonstration » pour eux.
 - **Réseaux sociaux** : seul GitHub est connu ; ajoutez les autres via `SOCIAL_*`.
-- Une image de partage (`og:image`) n'est pas incluse.
+- Image de partage : `public/og-image.png` (1200×630), à remplacer par votre logo si vous en avez un.
