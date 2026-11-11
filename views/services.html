@@ -1,17 +1,17 @@
     <section class="page-head container">
-      <p class="eyebrow">Services</p>
-      <h1>Ce que nous pouvons <span class="grad">créer pour vous</span></h1>
-      <p class="lead">Sites vitrines, boutiques en ligne, applications web, design graphique, identité numérique, assistance et maintenance.</p>
+      <p class="eyebrow">{{t.services.eyebrow}}</p>
+      <h1>{{t.services.title}}</h1>
+      <p class="lead">{{t.services.lead}}</p>
     </section>
 
     <section class="section container">
-      <div class="cards cards-wide" id="services-list" aria-live="polite"><div class="placeholder">Chargement des services…</div></div>
-      <noscript><p class="notice">Activez JavaScript pour afficher la liste des services, ou contactez-nous directement par WhatsApp.</p></noscript>
+      <div class="cards cards-wide" id="services-list" aria-live="polite"><div class="placeholder">{{t.client.loading}}</div></div>
+      <noscript><p class="notice">{{t.services.noscript}}</p></noscript>
     </section>
 
     <section class="section container">
       <div class="cta-band">
-        <div><h2>Un besoin particulier ?</h2><p>Votre projet ne correspond à aucune case ? Décrivez-le, nous construirons une offre adaptée.</p></div>
-        <div class="actions"><a class="button button-primary" href="/contact?service=autre#devis">Décrire mon projet</a><a class="button button-ghost" href="/tarifs">Voir les tarifs</a></div>
+        <div><h2>{{t.services.ctaTitle}}</h2><p>{{t.services.ctaText}}</p></div>
+        <div class="actions"><a class="button button-primary" href="{{p:contact}}?service=autre#devis">{{t.services.ctaButton}}</a><a class="button button-ghost" href="{{p:pricing}}">{{t.services.ctaPricing}}</a></div>
       </div>
     </section>

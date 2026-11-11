@@ -1,30 +1,32 @@
     <section class="page-head container">
-      <p class="eyebrow">Tarifs</p>
-      <h1>Des tarifs <span class="grad">clairs, en FCFA</span></h1>
-      <p class="lead">Ces montants sont indicatifs. Le tarif final dépend de votre besoin et figure dans un devis personnalisé.</p>
+      <p class="eyebrow">{{t.pricing.eyebrow}}</p>
+      <h1>{{t.pricing.title}}</h1>
+      <p class="lead">{{t.pricing.lead}}</p>
     </section>
 
-    <section class="section container">
-      <div class="cards" id="pricing-grid" aria-live="polite"><div class="placeholder">Chargement des tarifs…</div></div>
-      <noscript><p class="notice">Activez JavaScript pour afficher les tarifs, ou demandez un devis par WhatsApp.</p></noscript>
+    <section class="section container" aria-labelledby="h-plans">
+      <h2 id="h-plans" class="sr-only">{{t.pricing.plansTitle}}</h2>
+      <div class="plans" id="plans-grid" aria-live="polite"><div class="placeholder">{{t.client.loading}}</div></div>
+      <noscript><p class="notice">{{t.pricing.noscript}}</p></noscript>
     </section>
 
     <section class="section section-alt">
-      <div class="container two-col">
-        <div>
-          <h2>Conditions générales</h2>
-          <ul class="checklist">
-            <li>Les prix affichés sont indicatifs : le montant final est fixé dans un devis écrit.</li>
-            <li>Le devis précise le contenu, les délais et les modalités de paiement avant tout démarrage.</li>
-            <li>Les délais dépendent de la complexité du projet et de la rapidité de vos retours.</li>
-            <li>Le nom de domaine, l'hébergement et les services tiers éventuels ne sont pas inclus, sauf mention contraire dans le devis.</li>
-            <li>Toute demande supplémentaire en cours de projet fait l'objet d'un accord préalable.</li>
-          </ul>
-        </div>
-        <aside class="panel">
-          <h3>Devis personnalisé</h3>
-          <p>Indiquez la prestation, votre besoin, votre budget et votre délai : nous vous répondons avec une proposition adaptée.</p>
-          <a class="button button-primary" href="/contact#devis">Demander un devis</a>
-        </aside>
+      <div class="container">
+        <div class="section-head"><h2>{{t.pricing.perServiceTitle}}</h2></div>
+        <div class="cards" id="pricing-grid" aria-live="polite"><div class="placeholder">{{t.client.loading}}</div></div>
       </div>
+    </section>
+
+    <section class="section container two-col">
+      <div>
+        <h2>{{t.pricing.conditionsTitle}}</h2>
+        <ul class="checklist">
+          <li>{{t.pricing.c1}}</li><li>{{t.pricing.c2}}</li><li>{{t.pricing.c3}}</li><li>{{t.pricing.c4}}</li><li>{{t.pricing.c5}}</li>
+        </ul>
+      </div>
+      <aside class="panel">
+        <h3>{{t.pricing.boxTitle}}</h3>
+        <p>{{t.pricing.boxText}}</p>
+        <a class="button button-primary" href="{{p:contact}}#devis">{{t.pricing.boxButton}}</a>
+      </aside>
     </section>

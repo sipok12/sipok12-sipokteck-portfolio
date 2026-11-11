@@ -153,3 +153,8 @@ BASE_URL=http://localhost:3000 TEST_ADMIN_EMAIL=... TEST_ADMIN_PASSWORD=... FAKE
 - **Projets** : les trois projets sont des démonstrations ; ajoutez vos vrais projets (liens, code source) et décochez « démonstration » pour eux.
 - **Réseaux sociaux** : seul GitHub est connu ; ajoutez les autres via `SOCIAL_*`.
 - Image de partage : `public/og-image.png` (1200×630), à remplacer par votre logo si vous en avez un.
+
+
+## Version 3.0 (refonte bilingue)
+
+Voir `CHANGELOG.md`. Textes FR/EN : `lib/i18n.js` ; contenu initial des services et formules : `lib/content.js` ; pages : `views/` (jetons `{{t.cle}}`, `{{p:page}}`) ; pages assemblées par `lib/pages.js`. Ajouter une langue ou une page = ajouter ses textes dans `lib/i18n.js` (une clé manquante empêche le démarrage, ce qui évite tout texte vide en production).

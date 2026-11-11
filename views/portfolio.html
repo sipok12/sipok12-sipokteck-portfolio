@@ -1,29 +1,18 @@
     <section class="page-head container">
-      <p class="eyebrow">Portfolio</p>
-      <h1>Projets et <span class="grad">démonstrations</span></h1>
-      <p class="lead">Nous distinguons clairement les projets réalisés pour de vrais clients des démonstrations qui illustrent ce que nous savons faire.</p>
+      <p class="eyebrow">{{t.portfolio.eyebrow}}</p>
+      <h1>{{t.portfolio.title}}</h1>
+      <p class="lead">{{t.portfolio.lead}}</p>
     </section>
 
     <section class="section container">
-      <form class="filters" id="project-filters" role="search" aria-label="Filtrer les projets">
-        <div>
-          <label for="f-search">Rechercher</label>
-          <input id="f-search" type="search" placeholder="Titre, technologie…" autocomplete="off">
-        </div>
-        <div>
-          <label for="f-category">Catégorie</label>
-          <select id="f-category"><option value="">Toutes</option></select>
-        </div>
-        <div>
-          <label for="f-type">Type</label>
-          <select id="f-type">
-            <option value="">Tous</option>
-            <option value="real">Projets réels</option>
-            <option value="demo">Démonstrations</option>
-          </select>
-        </div>
-      </form>
+      <div class="chips" id="project-filters" role="group" aria-label="{{t.portfolio.filters}}">
+        <button class="chip-btn active" type="button" data-kind="" aria-pressed="true">{{t.portfolio.all}}</button>
+        <button class="chip-btn" type="button" data-kind="website" aria-pressed="false">{{t.portfolio.website}}</button>
+        <button class="chip-btn" type="button" data-kind="business" aria-pressed="false">{{t.portfolio.business}}</button>
+        <button class="chip-btn" type="button" data-kind="landing" aria-pressed="false">{{t.portfolio.landing}}</button>
+        <button class="chip-btn" type="button" data-kind="portfolio" aria-pressed="false">{{t.portfolio.portfolio}}</button>
+      </div>
       <p class="result-count" id="result-count" role="status" aria-live="polite"></p>
-      <div class="cards" id="project-grid"><div class="placeholder">Chargement des projets…</div></div>
-      <noscript><p class="notice">Activez JavaScript pour afficher les projets.</p></noscript>
+      <div class="cards" id="project-grid"><div class="placeholder">{{t.client.loading}}</div></div>
+      <noscript><p class="notice">{{t.portfolio.noscript}}</p></noscript>
     </section>

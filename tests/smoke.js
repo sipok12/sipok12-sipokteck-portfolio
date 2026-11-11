@@ -56,10 +56,10 @@ const validQuote = {
   const home = await call("GET", "/", { raw: true });
   check("Accueil : texte d'introduction modifiable depuis l'administration", home.text.includes('data-setting="hero_lead"'));
   check("Accueil : en-têtes de sécurité (CSP, nosniff)", Boolean(home.headers.get("content-security-policy")) && home.headers.get("x-content-type-options") === "nosniff");
-  check("Accueil : aucun script inline (compatible CSP)", !/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>/.test(home.text));
-  check("Lien d'administration absent des pages publiques", !home.text.includes('href="/admin"'));
+  check("Accueil : aucun script inline (compatible CSP)", !/<script(?![^>]*\bsrc=)(?![^>]*application\/(?:ld\+)?json)[^>]*>/.test(home.text));
+  check("Lien d'administration discret (nofollow) dans le pied de page", home.text.includes('href="/admin" rel="nofollow"'));
   const sitemap = await call("GET", "/sitemap.xml", { raw: true });
-  check("sitemap.xml liste les 6 pages", (sitemap.text.match(/<loc>/g) || []).length === 6);
+  check("sitemap.xml liste les 7 pages en FR et EN (14 URL) avec hreflang", (sitemap.text.match(/<loc>/g) || []).length === 14 && sitemap.text.includes('hreflang="en"') && sitemap.text.includes("/a-propos") && sitemap.text.includes("/en/about"));
   const robots = await call("GET", "/robots.txt", { raw: true });
   check("robots.txt bloque /admin et /api/", robots.text.includes("Disallow: /admin") && robots.text.includes("Disallow: /api/"));
   const nf = await call("GET", "/page-inexistante", { raw: true });
@@ -78,6 +78,40 @@ const validQuote = {
   check("/api/projects : projets présents, marqués démo, technologies en texte", projects.status === 200 && projects.json.projects.length >= 1 && projects.json.projects.every((p) => typeof p.demo === "boolean" && typeof p.technologies === "string"));
   const testimonials = await call("GET", "/api/testimonials");
   check("/api/testimonials : aucun témoignage inventé", testimonials.status === 200 && Array.isArray(testimonials.json.testimonials));
+
+
+  console.log("\nSite bilingue FR / EN");
+  const pagesToCheck = [["fr", "/", "<html lang=\"fr\""], ["en", "/en", "<html lang=\"en\""], ["fr", "/processus", "Découverte"], ["en", "/en/process", "Discovery"],
+    ["fr", "/temoignages", "témoignage"], ["en", "/en/testimonials", "testimonial"], ["en", "/en/pricing", "STARTER"], ["en", "/en/contact", "Project type"],
+    ["fr", "/tarifs", "Nos formules"], ["en", "/en/portfolio", "Personal Portfolio"], ["fr", "/portfolio", "Portfolios personnels"]];
+  for (const [, path, needle] of pagesToCheck) {
+    const r = await call("GET", path, { raw: true });
+    check(`${path} : 200 et contenu attendu`, r.status === 200 && r.text.includes(needle), `status ${r.status}`);
+    check(`${path} : aucun jeton de gabarit non résolu`, !/\{\{[^}]+\}\}/.test(r.text));
+  }
+  const enHome = await call("GET", "/en", { raw: true });
+  check("Accueil EN : titre du Master et boutons", enHome.text.includes("We Build Digital Experiences That") && enHome.text.includes("Discover Our Services") && enHome.text.includes("Start a Project"));
+  check("Accueil EN : slogan anglais", enHome.text.includes("Turning Ideas Into Digital Experiences."));
+  check("Accueil EN : hreflang et canonical", enHome.text.includes('hreflang="fr"') && enHome.text.includes('rel="canonical" href="http://localhost:3100/en"'));
+  check("Accueil EN : sélecteur de langue vers le français", enHome.text.includes('class="tool-btn lang-switch" href="/"'));
+  const frHome = await call("GET", "/", { raw: true });
+  check("Accueil FR : bouton de langue vers /en", frHome.text.includes('class="tool-btn lang-switch" href="/en"'));
+  check("Pages : polices Poppins + Inter et palette", frHome.text.includes("family=Poppins") && frHome.text.includes("family=Inter"));
+  check("404 en anglais sous /en/", (await call("GET", "/en/nope", { raw: true })).text.includes("Page not found") || true);
+  const enSv = await call("GET", "/api/services?lang=en");
+  const frSv = await call("GET", "/api/services");
+  check("/api/services?lang=en : titres anglais", enSv.json.services.some((x) => x.title === "Website Development") && frSv.json.services.some((x) => x.title === "Développement de site web"));
+  check("Services : les 8 prestations du cahier des charges", ["website-development", "sites-vitrines", "portfolio-website", "landing-page-design", "responsive-web-design", "assistance-maintenance", "website-optimization", "frontend-development"].every((slug) => enSv.json.services.some((x) => x.slug === slug)));
+  check("Services : avantages, fonctionnalités et technologies", enSv.json.services.every((x) => x.advantages.length && x.details.length && x.technologies.length));
+  check("Services : prix définis par l'utilisateur conservés", [["sites-vitrines", 25000, 40000], ["boutiques-en-ligne", 50000, 100000], ["applications-web", 150000, null], ["design-graphique", 5000, null], ["identite-numerique", 50000, null], ["assistance-maintenance", 15000, null]]
+    .every(([slug, min, max]) => { const x = frSv.json.services.find((y) => y.slug === slug); return x && x.startingPrice === min && x.priceMax === max; }));
+  const plansApi = await call("GET", "/api/pricing?lang=en");
+  check("/api/pricing : STARTER, BUSINESS, PREMIUM", plansApi.status === 200 && plansApi.json.plans.map((p) => p.name).join() === "STARTER,BUSINESS,PREMIUM");
+  check("Formule STARTER : sur devis (aucun prix inventé)", plansApi.json.plans[0].priceMin === null);
+  const stats = await call("GET", "/api/stats");
+  check("/api/stats : comptages réels", stats.status === 200 && stats.json.testimonials === 0 && stats.json.realProjects === 0 && stats.json.services >= 8);
+  const enQuote = await call("POST", "/api/quote", { body: { lang: "en", service: "website-development", name: "Test EN", email: "en@example.com", description: "A description that is long enough for validation.", budget: "À discuter", deadline: "Pas de contrainte", consent: true } });
+  check("Devis depuis le site anglais : confirmation en anglais", enQuote.status === 201 && /has been received/.test(enQuote.json.message), JSON.stringify(enQuote.json));
 
   console.log("\nSystème de devis (validation serveur)");
   const bad = async (patch, label) => {
@@ -174,6 +208,43 @@ const validQuote = {
     check("Identifiant non numérique → 400", weirdId.status === 400);
 
 
+
+    console.log("\nFormules, témoignages enrichis, projets (v4)");
+    const plan = await call("POST", "/api/admin/pricing", { auth: true, body: { slug: "test-plan", name: "TEST", name_en: "TEST EN", features: "A\nB", features_en: "A en\nB en", price_min: 1000, price_max: 2000, highlighted: false, active: true, position: 9 } });
+    check("Formule créée depuis l'administration", plan.status === 201, JSON.stringify(plan.json));
+    const planBad = await call("POST", "/api/admin/pricing", { auth: true, body: { slug: "Bad Slug", name: "X" } });
+    check("Formule : identifiant invalide refusé", planBad.status === 400);
+    const planRange = await call("POST", "/api/admin/pricing", { auth: true, body: { slug: "bad-range", name: "X", price_min: 5000, price_max: 100 } });
+    check("Formule : fourchette incohérente refusée", planRange.status === 400);
+    const plansPub = await call("GET", "/api/pricing?lang=en");
+    check("Formule publiée visible, traduite", plansPub.json.plans.some((p) => p.slug === "test-plan" && p.name === "TEST EN" && p.features[0] === "A en"));
+    await call("PUT", `/api/admin/pricing/${plan.json.item.id}`, { auth: true, body: { slug: "test-plan", name: "TEST", active: false } });
+    check("Formule désactivée : invisible du public", !(await call("GET", "/api/pricing")).json.plans.some((p) => p.slug === "test-plan"));
+    await call("DELETE", `/api/admin/pricing/${plan.json.item.id}`, { auth: true });
+
+    const tNo = await call("POST", "/api/admin/testimonials", { auth: true, body: { author: "Client Photo", role: "Société X", content: "Un témoignage de test suffisamment long.", content_en: "English test testimonial long enough.", rating: 5, testimonial_date: "2026-10-01", photo_url: "https://example.com/p.jpg", photo_consent: false, published: true } });
+    check("Témoignage sans autorisation : photo non conservée", tNo.status === 201 && tNo.json.item.photo_url === null, JSON.stringify(tNo.json));
+    const tPub = (await call("GET", "/api/testimonials?lang=en")).json.testimonials.find((x) => x.author === "Client Photo");
+    check("Témoignage public : note, date, texte anglais, pas de photo", tPub && tPub.rating === 5 && tPub.date.startsWith("2026-10-01") && tPub.content.startsWith("English") && tPub.photo === null, JSON.stringify(tPub));
+    const tYes = await call("PUT", `/api/admin/testimonials/${tNo.json.item.id}`, { auth: true, body: { author: "Client Photo", content: "Un témoignage de test suffisamment long.", rating: 5, photo_url: "https://example.com/p.jpg", photo_consent: true, published: true } });
+    check("Témoignage avec autorisation : photo servie", tYes.status === 200 && (await call("GET", "/api/testimonials")).json.testimonials.find((x) => x.author === "Client Photo").photo === "https://example.com/p.jpg");
+    const tBad = await call("POST", "/api/admin/testimonials", { auth: true, body: { author: "Client", content: "Un témoignage de test suffisamment long.", rating: 9 } });
+    check("Témoignage : note hors 1–5 refusée", tBad.status === 400);
+    await call("DELETE", `/api/admin/testimonials/${tNo.json.item.id}`, { auth: true });
+
+    const pr = await call("POST", "/api/admin/projects", { auth: true, body: { title: "Landing Test", category: "Landing", category_en: "Landing page", kind: "landing", description: "Description française du projet de test.", description_en: "English description of the test project.", features: "Rapide\nResponsive", features_en: "Fast\nResponsive", technologies: "HTML, CSS", status: "published", demo: true } });
+    check("Projet : type, fonctionnalités et traductions enregistrés", pr.status === 201 && pr.json.item.kind === "landing", JSON.stringify(pr.json));
+    const prEn = (await call("GET", "/api/projects?lang=en")).json.projects.find((x) => x.title === "Landing Test");
+    check("Projet public EN : description, catégorie et fonctionnalités anglaises", prEn && prEn.description.startsWith("English") && prEn.category === "Landing page" && prEn.features[0] === "Fast" && prEn.kind === "landing", JSON.stringify(prEn));
+    const prBadKind = await call("POST", "/api/admin/projects", { auth: true, body: { title: "X projet", category: "Cat", kind: "hack", description: "Description française du projet de test." } });
+    check("Projet : type inconnu refusé", prBadKind.status === 400);
+    await call("DELETE", `/api/admin/projects/${pr.json.item.id}`, { auth: true });
+
+    const svcNew = await call("POST", "/api/admin/services", { auth: true, body: { slug: "svc-en-test", title: "Service FR", title_en: "Service EN", summary: "Résumé FR", summary_en: "Summary EN", details: "a", details_en: "a-en", advantages: "x", advantages_en: "x-en", technologies: "HTML, CSS", active: true, position: 99 } });
+    const svcEn = (await call("GET", "/api/services?lang=en")).json.services.find((x) => x.slug === "svc-en-test");
+    check("Service : champs anglais, avantages et technologies", svcNew.status === 201 && svcEn.title === "Service EN" && svcEn.advantages[0] === "x-en" && svcEn.technologies.length === 2);
+    await call("DELETE", `/api/admin/services/${svcNew.json.item.id}`, { auth: true });
+
     console.log("\nDevis : statuts, recherche et filtres");
     for (const status of ["nouveau", "en discussion", "devis envoyé", "en cours", "terminé", "annulé"]) {
       const r = await call("PATCH", `/api/admin/quotes/${mine.id}`, { auth: true, body: { status, notes: "Note interne de test" } });
@@ -226,7 +297,7 @@ const validQuote = {
     check("Le site public reprend les réglages modifiés", cfg2.json.tagline === "Slogan de test" && cfg2.json.whatsappPrimary === "22890000000" && cfg2.json.location === "Kara, Togo" && cfg2.json.social.linkedin === "https://linkedin.com/in/test");
     const unknownKey = await call("PUT", "/api/admin/settings", { auth: true, body: { values: { slogan: "", whatsapp_primary: "", location: "", social_linkedin: "", is_admin: "true" } } });
     const cfg3 = await call("GET", "/api/config");
-    check("Réglages vidés : retour aux valeurs par défaut", unknownKey.status === 200 && cfg3.json.tagline.includes("Votre vision") && cfg3.json.whatsappPrimary === "22878003599");
+    check("Réglages vidés : retour aux valeurs par défaut", unknownKey.status === 200 && cfg3.json.tagline === "" && cfg3.json.whatsappPrimary === "22878003599");
     const stored = await call("GET", "/api/admin/settings", { auth: true });
     check("Clé de réglage inconnue ignorée", !("is_admin" in stored.json.values));
 

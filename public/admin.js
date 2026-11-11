@@ -7,7 +7,7 @@
   const MESSAGE_STATUSES = ["nouveau", "lu", "traité"];
   const TITLES = {
     dashboard: "Vue d'ensemble", stats: "Statistiques et évolution", quotes: "Demandes de devis", messages: "Messages",
-    projects: "Projets", services: "Services & tarifs", testimonials: "Témoignages", clients: "Clients",
+    projects: "Projets", services: "Services & tarifs", pricing: "Formules tarifaires", testimonials: "Témoignages", clients: "Clients",
     settings: "Informations du site", activity: "Historique des actions", account: "Mon compte"
   };
   let csrfToken = "";
@@ -78,21 +78,36 @@
   // --- Connexion, récupération du mot de passe ---
   const forms = { login: $("#login-form"), recover: $("#recover-form"), reset: $("#reset-form") };
   function showForm(name) { for (const [key, form] of Object.entries(forms)) form.hidden = key !== name; }
-  function showLogin() { $("#login-view").hidden = false; $("#app").hidden = true; showForm("login"); }
+  const hideBoot = () => { const boot = $("#boot"); if (boot) boot.hidden = true; };
+  function showLogin() { hideBoot(); $("#login-view").hidden = false; $("#app").hidden = true; showForm("login"); }
   function showApp(admin) {
+    hideBoot();
     $("#login-view").hidden = true;
     $("#app").hidden = false;
     $("#admin-name").textContent = admin.name || "Administrateur";
     setTab("dashboard");
   }
   async function checkSession() {
+    const text = $("#boot-text");
+    const retry = $("#boot-retry");
+    retry.hidden = true;
+    const slow = setTimeout(() => { text.textContent = "Le serveur se réveille, cela peut prendre jusqu'à une minute…"; }, 6000);
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 45000));
     try {
-      const data = await api("/api/admin/me");
+      const data = await Promise.race([api("/api/admin/me"), timeout]);
       csrfToken = data.csrfToken || "";
       caps = data.capabilities || caps;
+      clearTimeout(slow);
       showApp(data.admin);
-    } catch { showLogin(); }
+    } catch (error) {
+      clearTimeout(slow);
+      if (error.message === "timeout") {
+        text.textContent = "Le serveur ne répond pas. Vérifiez votre connexion puis réessayez.";
+        retry.hidden = false;
+      } else showLogin();
+    }
   }
+  $("#boot-retry").addEventListener("click", checkSession);
 
   forms.login.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -577,11 +592,13 @@
   views.projects = entityView({
     endpoint: "/api/admin/projects", title: "Projets", singular: "Nouveau projet",
     intro: "Un projet « publié » apparaît automatiquement dans le portfolio ; un brouillon reste invisible.",
-    defaults: { icon: "💻", demo: true, featured: false, status: "published" },
+    defaults: { icon: "💻", demo: true, featured: false, status: "published", kind: "website" },
     thumbOf: (p) => p.image_url || (Array.isArray(p.images) && p.images[0]) || "",
     fields: [
       { name: "title", label: "Titre", required: true, max: 120 },
-      { name: "category", label: "Catégorie", required: true, max: 80, placeholder: "Site vitrine, E-commerce…" },
+      { name: "category", label: "Catégorie (affichée)", required: true, max: 80, placeholder: "Site vitrine, E-commerce…" },
+      { name: "category_en", label: "Catégorie en anglais", max: 80, placeholder: "Business website, E-commerce…" },
+      { name: "kind", label: "Type (filtre du portfolio)", type: "select", options: [["website", "Sites web"], ["business", "Entreprises"], ["landing", "Landing pages"], ["portfolio", "Portfolio personnel"], ["other", "Autre"]] },
       { name: "status", label: "Statut", type: "select", options: [["published", "Publié (visible sur le site)"], ["draft", "Brouillon (non visible)"]] },
       { name: "realized_on", label: "Date de réalisation", type: "date" },
       { name: "icon", label: "Icône (emoji)", max: 20 },
@@ -590,6 +607,9 @@
       { name: "source_url", label: "Lien du code source", type: "url", max: 500, placeholder: "https://github.com/…" },
       { name: "images", label: "Images", type: "images", max: 8, folder: "projects" },
       { name: "description", label: "Description", type: "textarea", required: true, max: 2000, full: true },
+      { name: "description_en", label: "Description en anglais", type: "textarea", max: 2000, full: true },
+      { name: "features", label: "Fonctionnalités principales", type: "textarea", rows: 4, max: 1500, full: true, help: "une par ligne" },
+      { name: "features_en", label: "Fonctionnalités en anglais", type: "textarea", rows: 4, max: 1500, full: true, help: "une par ligne" },
       { name: "featured", label: "Mettre à la une", type: "checkbox" },
       { name: "demo", label: "Projet de démonstration (décochez pour un projet réel livré à un client)", type: "checkbox" }
     ],
@@ -617,9 +637,16 @@
       { name: "price_max", label: "Prix maximum (FCFA)", type: "number", help: "facultatif, pour une fourchette" },
       { name: "price_unit", label: "Unité", max: 40, placeholder: "/ mois" },
       { name: "image_url", label: "Image du service (facultatif)", type: "image", folder: "services" },
+      { name: "title_en", label: "Titre en anglais", max: 120 },
+      { name: "technologies", label: "Technologies", max: 300, help: "séparées par des virgules" },
       { name: "summary", label: "Résumé", required: true, max: 300, full: true },
-      { name: "details", label: "Contenu inclus", type: "textarea", rows: 5, max: 2000, full: true, help: "un point par ligne" },
+      { name: "summary_en", label: "Résumé en anglais", max: 300, full: true },
+      { name: "advantages", label: "Avantages", type: "textarea", rows: 4, max: 1500, full: true, help: "un point par ligne" },
+      { name: "advantages_en", label: "Avantages en anglais", type: "textarea", rows: 4, max: 1500, full: true },
+      { name: "details", label: "Fonctionnalités incluses", type: "textarea", rows: 5, max: 2000, full: true, help: "un point par ligne" },
+      { name: "details_en", label: "Fonctionnalités en anglais", type: "textarea", rows: 5, max: 2000, full: true },
       { name: "conditions", label: "Conditions", type: "textarea", max: 1000, full: true },
+      { name: "conditions_en", label: "Conditions en anglais", type: "textarea", max: 1000, full: true },
       { name: "active", label: "Actif (visible sur le site)", type: "checkbox" }
     ],
     describe: (s) => ({
@@ -629,19 +656,52 @@
     })
   });
 
+  views.pricing = entityView({
+    endpoint: "/api/admin/pricing", title: "Formules tarifaires", singular: "Nouvelle formule",
+    intro: "Les formules STARTER / BUSINESS / PREMIUM de la page Tarifs. Prix vide = « Sur devis ». Les prix sont indicatifs : le tarif définitif est fixé dans le devis.",
+    defaults: { position: 0, active: true, highlighted: false },
+    fields: [
+      { name: "name", label: "Nom", required: true, max: 60 },
+      { name: "name_en", label: "Nom en anglais", max: 60 },
+      { name: "slug", label: "Identifiant", required: true, max: 40, help: "minuscules, chiffres, tirets" },
+      { name: "position", label: "Ordre d'affichage", type: "number" },
+      { name: "price_min", label: "Prix, ou prix minimum (FCFA)", type: "number", help: "vide = sur devis" },
+      { name: "price_max", label: "Prix maximum (FCFA)", type: "number", help: "facultatif" },
+      { name: "price_unit", label: "Unité", max: 40, placeholder: "/ mois" },
+      { name: "service_slug", label: "Prestation présélectionnée dans le devis", max: 60, help: "identifiant d'un service" },
+      { name: "tagline", label: "Phrase d'accroche", max: 200, full: true },
+      { name: "tagline_en", label: "Accroche en anglais", max: 200, full: true },
+      { name: "features", label: "Fonctionnalités", type: "textarea", rows: 5, max: 1500, full: true, help: "une par ligne" },
+      { name: "features_en", label: "Fonctionnalités en anglais", type: "textarea", rows: 5, max: 1500, full: true },
+      { name: "highlighted", label: "Mettre en avant (« Recommandée »)", type: "checkbox" },
+      { name: "active", label: "Actif (visible sur le site)", type: "checkbox" }
+    ],
+    describe: (p) => ({
+      title: p.name,
+      badges: [[p.active ? "Actif" : "Désactivé", p.active ? "green" : "warn"], ...(p.highlighted ? [["Mise en avant", ""]] : [])],
+      meta: `${p.price_min === null ? "Sur devis" : `${p.price_max !== null && p.price_max > p.price_min ? `${fmt(p.price_min)} – ${fmt(p.price_max)}` : `À partir de ${fmt(p.price_min)}`} FCFA ${p.price_unit || ""}`.trim()} · ordre ${p.position}`
+    })
+  });
+
   views.testimonials = entityView({
     endpoint: "/api/admin/testimonials", title: "Témoignages", singular: "Nouveau témoignage",
-    intro: "N'ajoutez que de vrais avis de clients, avec leur autorisation. Rien n'est affiché tant qu'un témoignage n'est pas publié.",
-    defaults: { published: false },
+    intro: "N'ajoutez que de vrais avis de clients, avec leur autorisation. Rien n'est affiché tant qu'un témoignage n'est pas publié. La photo n'est affichée que si l'autorisation est cochée.",
+    defaults: { published: false, photo_consent: false },
+    thumbOf: (t) => (t.photo_consent && t.photo_url) || "",
     fields: [
-      { name: "author", label: "Auteur", required: true, max: 100 },
-      { name: "role", label: "Fonction / entreprise", max: 120 },
+      { name: "author", label: "Nom du client", required: true, max: 100 },
+      { name: "role", label: "Entreprise / fonction", max: 120 },
+      { name: "rating", label: "Note (1 à 5, facultatif)", type: "number" },
+      { name: "testimonial_date", label: "Date du témoignage", type: "date" },
       { name: "content", label: "Témoignage", type: "textarea", required: true, max: 1000, full: true },
+      { name: "content_en", label: "Témoignage en anglais (facultatif)", type: "textarea", max: 1000, full: true },
+      { name: "photo_url", label: "Photo (uniquement avec autorisation du client)", type: "image", folder: "testimonials" },
+      { name: "photo_consent", label: "Le client a autorisé l'affichage de sa photo", type: "checkbox" },
       { name: "published", label: "Publier sur le site (après vérification et accord du client)", type: "checkbox" }
     ],
     describe: (t) => ({
       title: `${t.author}${t.role ? ` — ${t.role}` : ""}`,
-      badges: [[t.published ? "Publié" : "Brouillon", t.published ? "green" : "warn"]],
+      badges: [[t.published ? "Publié" : "Brouillon", t.published ? "green" : "warn"], ...(t.rating ? [[`${t.rating}/5`, ""]] : [])],
       meta: t.content
     })
   });

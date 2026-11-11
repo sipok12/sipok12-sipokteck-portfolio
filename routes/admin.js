@@ -271,7 +271,7 @@ router.post("/uploads", uploadLimiter,
       return res.status(503).json({ error: "L'envoi d'images n'est pas configuré (clé Supabase Storage absente). Vous pouvez coller l'adresse d'une image à la place." });
     }
     const type = IMAGE_TYPES[req.get("content-type")];
-    const folder = ["projects", "services"].includes(req.query.folder) ? req.query.folder : "projects";
+    const folder = ["projects", "services", "testimonials"].includes(req.query.folder) ? req.query.folder : "projects";
     if (!type || !Buffer.isBuffer(req.body) || !req.body.length) {
       return res.status(415).json({ error: "Format refusé. Envoyez une image JPG, PNG ou WebP de 5 Mo maximum." });
     }
@@ -451,7 +451,12 @@ mountCrud("projects", {
   fields: [
     { name: "title", label: "Le titre", type: "string", min: 2, max: 120, required: true },
     { name: "category", label: "La catégorie", type: "string", min: 2, max: 80, required: true },
+    { name: "category_en", label: "La catégorie (anglais)", type: "string", max: 80 },
+    { name: "kind", label: "Le type de projet", type: "enum", options: ["website", "business", "landing", "portfolio", "other"], default: "website" },
     { name: "description", label: "La description", type: "text", min: 10, max: 2000, required: true },
+    { name: "description_en", label: "La description (anglais)", type: "text", max: 2000 },
+    { name: "features", label: "Les fonctionnalités", type: "text", max: 1500 },
+    { name: "features_en", label: "Les fonctionnalités (anglais)", type: "text", max: 1500 },
     { name: "technologies", label: "Les technologies", type: "string", max: 300 },
     { name: "url", label: "Le lien du projet", type: "url", max: 500, nullable: true },
     { name: "source_url", label: "Le lien du code source", type: "url", max: 500, nullable: true },
@@ -477,14 +482,21 @@ mountCrud("services", {
     { name: "slug", label: "L'identifiant", type: "string", min: 2, max: 60, required: true,
       pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, patternMessage: "L'identifiant ne peut contenir que des minuscules, chiffres et tirets." },
     { name: "title", label: "Le titre", type: "string", min: 2, max: 120, required: true },
+    { name: "title_en", label: "Le titre (anglais)", type: "string", max: 120 },
     { name: "summary", label: "Le résumé", type: "string", min: 5, max: 300, required: true },
-    { name: "details", label: "Les détails", type: "text", max: 2000 },
+    { name: "summary_en", label: "Le résumé (anglais)", type: "string", max: 300 },
+    { name: "details", label: "Les fonctionnalités", type: "text", max: 2000 },
+    { name: "details_en", label: "Les fonctionnalités (anglais)", type: "text", max: 2000 },
+    { name: "advantages", label: "Les avantages", type: "text", max: 1500 },
+    { name: "advantages_en", label: "Les avantages (anglais)", type: "text", max: 1500 },
+    { name: "technologies", label: "Les technologies", type: "string", max: 300 },
     { name: "icon", label: "L'icône", type: "string", max: 20, default: "◆" },
     { name: "image_url", label: "L'image", type: "url", max: 500, nullable: true },
     { name: "starting_price", label: "Le prix (ou prix minimum)", type: "int", min: 0, max: 100000000 },
     { name: "price_max", label: "Le prix maximum", type: "int", min: 0, max: 100000000 },
     { name: "price_unit", label: "L'unité de prix", type: "string", max: 40 },
     { name: "conditions", label: "Les conditions", type: "text", max: 1000 },
+    { name: "conditions_en", label: "Les conditions (anglais)", type: "text", max: 1000 },
     { name: "position", label: "La position", type: "int", min: 0, max: 1000, default: 0 },
     { name: "active", type: "bool" }
   ]
@@ -492,11 +504,48 @@ mountCrud("services", {
 
 mountCrud("testimonials", {
   table: "testimonials", label: "Témoignage", order: "created_at DESC",
+  storageFields: ["photo_url"],
+  validate: (d) => {
+    // Pas d'autorisation = pas de photo conservée (elle ne doit jamais être exposée).
+    if (!d.photo_consent) d.photo_url = null;
+    return null;
+  },
   fields: [
     { name: "author", label: "L'auteur", type: "string", min: 2, max: 100, required: true },
-    { name: "role", label: "La fonction", type: "string", max: 120 },
+    { name: "role", label: "L'entreprise ou la fonction", type: "string", max: 120 },
     { name: "content", label: "Le témoignage", type: "text", min: 10, max: 1000, required: true },
+    { name: "content_en", label: "Le témoignage (anglais)", type: "text", max: 1000 },
+    { name: "rating", label: "La note", type: "int", min: 1, max: 5 },
+    { name: "testimonial_date", label: "La date", type: "date" },
+    { name: "photo_url", label: "La photo", type: "url", max: 500, nullable: true },
+    { name: "photo_consent", type: "bool" },
     { name: "published", type: "bool" }
+  ]
+});
+
+mountCrud("pricing", {
+  table: "pricing_plans", label: "Formule", order: "position, id",
+  validate: (d) => {
+    if (d.price_max !== null && d.price_min === null) return "Indiquez aussi le prix minimum pour une fourchette.";
+    if (d.price_max !== null && d.price_max < d.price_min) return "Le prix maximum doit être supérieur ou égal au prix minimum.";
+    return null;
+  },
+  fields: [
+    { name: "slug", label: "L'identifiant", type: "string", min: 2, max: 40, required: true,
+      pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, patternMessage: "L'identifiant ne peut contenir que des minuscules, chiffres et tirets." },
+    { name: "name", label: "Le nom", type: "string", min: 2, max: 60, required: true },
+    { name: "name_en", label: "Le nom (anglais)", type: "string", max: 60 },
+    { name: "tagline", label: "La phrase d'accroche", type: "string", max: 200 },
+    { name: "tagline_en", label: "La phrase d'accroche (anglais)", type: "string", max: 200 },
+    { name: "price_min", label: "Le prix (ou prix minimum)", type: "int", min: 0, max: 100000000 },
+    { name: "price_max", label: "Le prix maximum", type: "int", min: 0, max: 100000000 },
+    { name: "price_unit", label: "L'unité de prix", type: "string", max: 40 },
+    { name: "features", label: "Les fonctionnalités", type: "text", max: 1500 },
+    { name: "features_en", label: "Les fonctionnalités (anglais)", type: "text", max: 1500 },
+    { name: "service_slug", label: "La prestation présélectionnée", type: "string", max: 60 },
+    { name: "highlighted", type: "bool" },
+    { name: "position", label: "La position", type: "int", min: 0, max: 1000, default: 0 },
+    { name: "active", type: "bool" }
   ]
 });
 

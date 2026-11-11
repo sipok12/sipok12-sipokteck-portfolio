@@ -1,13 +1,13 @@
 {
   "name": "sipoktech-digital",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "description": "SIPOKTECH DIGITAL — vitrine, devis et administration (Express, PostgreSQL)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "check": "node --check server.js && node --check db.js && node --check lib/validate.js && node --check lib/site.js && node --check lib/mailer.js && node --check lib/init.js && node --check lib/supabase.js && node --check lib/activity.js && node --check lib/settings.js && node --check lib/pages.js && node --check routes/public.js && node --check routes/admin.js && node --check public/app.js && node --check public/home.js && node --check public/services-page.js && node --check public/tarifs.js && node --check public/portfolio.js && node --check public/contact.js && node --check public/admin.js && node --check scripts/gen-secrets.js && node --check tests/smoke.js && node --check tests/fake-supabase.js",
+    "check": "node --check server.js && node --check db.js && node --check lib/validate.js && node --check lib/site.js && node --check lib/mailer.js && node --check lib/init.js && node --check lib/supabase.js && node --check lib/activity.js && node --check lib/settings.js && node --check lib/pages.js && node --check lib/i18n.js && node --check lib/content.js && node --check public/theme.js && node --check public/temoignages.js && node --check routes/public.js && node --check routes/admin.js && node --check public/app.js && node --check public/home.js && node --check public/services-page.js && node --check public/tarifs.js && node --check public/portfolio.js && node --check public/contact.js && node --check public/admin.js && node --check scripts/gen-secrets.js && node --check tests/smoke.js && node --check tests/fake-supabase.js",
     "secrets": "node scripts/gen-secrets.js",
     "smoke": "node tests/smoke.js"
   },

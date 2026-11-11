@@ -1,74 +1,93 @@
     <section class="hero container">
       <div class="hero-copy">
-        <p class="eyebrow"><span class="dot" aria-hidden="true"></span> Lomé, Togo · Au Togo et à l'international</p>
-        <h1>Votre vision, notre créativité, <span class="grad">le numérique comme solution.</span></h1>
-        <p class="lead" data-setting="hero_lead">SIPOKTECH DIGITAL conçoit des sites vitrines, des boutiques en ligne et des applications web pour les entrepreneurs, commerces et organisations qui veulent développer leur activité.</p>
+        <p class="eyebrow"><span class="dot" aria-hidden="true"></span> {{t.home.eyebrow}}</p>
+        <h1>{{t.home.title}}</h1>
+        <p class="lead" data-setting="hero_lead">{{t.home.lead}}</p>
         <div class="actions">
-          <a class="button button-primary" href="/contact#devis">Demander un devis</a>
-          <a class="button button-ghost" data-wa="primary" data-wa-text="Bonjour, je souhaite discuter d'un projet avec SIPOKTECH DIGITAL." href="https://wa.me/22878003599" target="_blank" rel="noopener noreferrer">Discuter sur WhatsApp</a>
+          <a class="button button-primary" href="{{p:services}}">{{t.home.cta1}} <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="button button-ghost" href="{{p:contact}}#devis">{{t.home.cta2}}</a>
         </div>
-        <ul class="hero-points">
-          <li>Sites adaptés au mobile</li>
-          <li>Tarifs clairs en FCFA</li>
-          <li>Devis personnalisé</li>
+        <p class="skills-label">{{t.home.skills}}</p>
+        <ul class="tags skill-chips">
+          <li>HTML5</li><li>CSS3</li><li>JavaScript</li><li>Node.js</li><li>PostgreSQL</li><li>Supabase</li><li>Git &amp; GitHub</li>
         </ul>
       </div>
       <div class="hero-visual" aria-hidden="true">
-        <div class="stage" data-tilt>
-          <div class="device">
-            <div class="device-bar"><i></i><i></i><i></i><span></span></div>
-            <div class="device-body">
-              <div class="mock-hero"><b></b><b></b><em></em></div>
-              <div class="mock-grid"><span></span><span></span><span></span></div>
-            </div>
+        <div class="glow"></div>
+        <div class="window">
+          <div class="window-bar"><i></i><i></i><i></i><span>sipoktech.digital</span></div>
+          <div class="window-body">
+            <p><b class="c1">const</b> <b class="c2">idea</b> = <b class="c3">"your vision"</b>;</p>
+            <p><b class="c1">await</b> <b class="c2">build</b>(idea);</p>
+            <p><b class="c1">return</b> <b class="c3">"digital experience"</b>;</p>
+            <div class="window-preview"><span></span><span></span><span></span></div>
           </div>
-          <div class="float float-a"><span>▣</span> Application web</div>
-          <div class="float float-b"><span>◇</span> Boutique en ligne</div>
-          <div class="float float-c"><span>⌘</span> Site vitrine</div>
         </div>
+        <div class="chip chip-a"><svg class="icon"><use href="#i-code"/></svg> Web</div>
+        <div class="chip chip-b"><svg class="icon"><use href="#i-smartphone"/></svg> Mobile</div>
+        <div class="chip chip-c"><svg class="icon"><use href="#i-gauge"/></svg> Speed</div>
       </div>
     </section>
 
-    <section class="section container" aria-labelledby="h-services">
+    <section class="section container" aria-labelledby="h-about">
       <div class="section-head">
-        <p class="eyebrow">Nos services</p>
-        <h2 id="h-services">Des solutions numériques <span class="grad">sur mesure</span></h2>
-        <p>Du site vitrine à l'application web, chaque projet est adapté à votre activité et à votre budget.</p>
+        <p class="eyebrow">{{t.home.aboutEyebrow}}</p>
+        <h2 id="h-about">{{t.home.aboutTitle}}</h2>
+        <p>{{t.home.aboutText}}</p>
       </div>
-      <div class="cards" id="home-services" aria-live="polite"><div class="placeholder">Chargement des services…</div></div>
-      <p class="section-cta"><a class="button button-ghost" href="/services">Voir tous les services</a> <a class="button button-ghost" href="/tarifs">Voir les tarifs</a></p>
+      <div class="cards cards-3">
+        <article class="card"><span class="icon-badge"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg></span><h3>{{t.home.pillar1}}</h3><p class="muted">{{t.home.pillar1t}}</p></article>
+        <article class="card"><span class="icon-badge"><svg class="icon" aria-hidden="true"><use href="#i-gauge"/></svg></span><h3>{{t.home.pillar2}}</h3><p class="muted">{{t.home.pillar2t}}</p></article>
+        <article class="card"><span class="icon-badge"><svg class="icon" aria-hidden="true"><use href="#i-badge"/></svg></span><h3>{{t.home.pillar3}}</h3><p class="muted">{{t.home.pillar3t}}</p></article>
+      </div>
     </section>
 
-    <section class="section section-alt">
+    <section class="section section-alt" aria-labelledby="h-services">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Comment ça marche</p>
-          <h2>Un projet en <span class="grad">quatre étapes</span></h2>
+          <p class="eyebrow">{{t.home.servicesEyebrow}}</p>
+          <h2 id="h-services">{{t.home.servicesTitle}}</h2>
+          <p>{{t.home.servicesLead}}</p>
         </div>
-        <ol class="steps">
-          <li><span class="step-n">1</span><h3>Votre demande</h3><p>Choisissez une prestation et décrivez votre besoin, votre budget et votre délai.</p></li>
-          <li><span class="step-n">2</span><h3>Échange</h3><p>Nous reprenons contact par WhatsApp ou email pour préciser le projet.</p></li>
-          <li><span class="step-n">3</span><h3>Devis</h3><p>Vous recevez un devis personnalisé avant tout engagement.</p></li>
-          <li><span class="step-n">4</span><h3>Réalisation</h3><p>Le projet est conçu, testé puis mis en ligne, avec un suivi après livraison.</p></li>
-        </ol>
+        <div class="cards" id="home-services" aria-live="polite"><div class="placeholder">{{t.client.loading}}</div></div>
+        <p class="section-cta"><a class="button button-ghost" href="{{p:services}}">{{t.home.allServices}}</a> <a class="button button-ghost" href="{{p:pricing}}">{{t.home.seePricing}}</a></p>
       </div>
     </section>
 
     <section class="section container" aria-labelledby="h-projets">
       <div class="section-head">
-        <p class="eyebrow">Portfolio</p>
-        <h2 id="h-projets">Projets <span class="grad">récents</span></h2>
-        <p>Les projets de démonstration sont clairement identifiés comme tels.</p>
+        <p class="eyebrow">{{t.home.projectsEyebrow}}</p>
+        <h2 id="h-projets">{{t.home.projectsTitle}}</h2>
+        <p>{{t.home.projectsLead}}</p>
       </div>
-      <div class="cards" id="home-projects" aria-live="polite"><div class="placeholder">Chargement des projets…</div></div>
-      <p class="section-cta"><a class="button button-ghost" href="/portfolio">Voir tout le portfolio</a></p>
+      <div class="cards" id="home-projects" aria-live="polite"><div class="placeholder">{{t.client.loading}}</div></div>
+      <p class="section-cta"><a class="button button-ghost" href="{{p:portfolio}}">{{t.home.allProjects}}</a></p>
     </section>
 
-    <section class="section section-alt" id="temoignages" hidden>
+    <section class="section section-alt" id="stats" hidden aria-labelledby="h-stats">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Témoignages</p>
-          <h2>Ils nous ont <span class="grad">fait confiance</span></h2>
+          <p class="eyebrow">{{t.home.statsEyebrow}}</p>
+          <h2 id="h-stats">{{t.home.statsTitle}}</h2>
+        </div>
+        <div class="stats" id="home-stats"></div>
+      </div>
+    </section>
+
+    <section class="section container" aria-labelledby="h-process">
+      <div class="section-head">
+        <p class="eyebrow">{{t.home.processEyebrow}}</p>
+        <h2 id="h-process">{{t.home.processTitle}}</h2>
+        <p>{{t.home.processLead}}</p>
+      </div>
+      <p class="section-cta"><a class="button button-ghost" href="{{p:process}}">{{t.home.processLink}}</a></p>
+    </section>
+
+    <section class="section section-alt" id="temoignages" hidden aria-labelledby="h-testi">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">{{t.home.testiEyebrow}}</p>
+          <h2 id="h-testi">{{t.home.testiTitle}}</h2>
         </div>
         <div class="cards" id="home-testimonials"></div>
       </div>
@@ -77,12 +96,12 @@
     <section class="section container">
       <div class="cta-band">
         <div>
-          <h2>Parlons de votre projet</h2>
-          <p>Décrivez votre besoin : vous recevez un devis personnalisé, sans engagement.</p>
+          <h2>{{t.home.ctaTitle}}</h2>
+          <p>{{t.home.ctaText}}</p>
         </div>
         <div class="actions">
-          <a class="button button-primary" href="/contact#devis">Demander un devis</a>
-          <a class="button button-ghost" data-wa="primary" data-wa-text="Bonjour, je souhaite discuter d'un projet avec SIPOKTECH DIGITAL." href="https://wa.me/22878003599" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+          <a class="button button-primary" href="{{p:contact}}#devis">{{t.nav.quote}}</a>
+          <a class="button button-ghost" data-wa="primary" data-wa-text="" href="https://wa.me/22878003599" target="_blank" rel="noopener noreferrer">WhatsApp</a>
         </div>
       </div>
     </section>

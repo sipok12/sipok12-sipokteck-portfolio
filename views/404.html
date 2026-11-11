@@ -1,10 +1,10 @@
     <section class="page-head container not-found">
-      <p class="eyebrow">Erreur 404</p>
-      <h1>Page <span class="grad">introuvable</span></h1>
-      <p class="lead">Cette page n'existe pas ou a été déplacée. Retournez à l'accueil ou choisissez une rubrique.</p>
+      <p class="eyebrow">{{t.notfound.eyebrow}}</p>
+      <h1>{{t.notfound.title}}</h1>
+      <p class="lead">{{t.notfound.lead}}</p>
       <div class="actions">
-        <a class="button button-primary" href="/">Retour à l'accueil</a>
-        <a class="button button-ghost" href="/services">Voir les services</a>
-        <a class="button button-ghost" href="/contact">Nous contacter</a>
+        <a class="button button-primary" href="{{p:home}}">{{t.notfound.home}}</a>
+        <a class="button button-ghost" href="{{p:services}}">{{t.notfound.services}}</a>
+        <a class="button button-ghost" href="{{p:contact}}">{{t.notfound.contact}}</a>
       </div>
     </section>

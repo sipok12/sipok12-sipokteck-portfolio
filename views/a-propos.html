@@ -1,43 +1,70 @@
     <section class="page-head container">
-      <p class="eyebrow">À propos</p>
-      <h1>Le numérique, <span class="grad">pensé pour vous</span></h1>
-      <p class="lead" data-setting="about_intro">Je suis Jean-Paul AHITE, fondateur de SIPOKTECH DIGITAL à Lomé, au Togo. J'aide les entrepreneurs, commerces et organisations à construire une présence en ligne claire, utile et agréable à utiliser.</p>
+      <p class="eyebrow">{{t.about.eyebrow}}</p>
+      <h1>{{t.about.title}}</h1>
+      <p class="lead" data-setting="about_intro">{{t.about.lead}}</p>
     </section>
 
     <section class="section container two-col">
       <div>
-        <h2>Mon parcours</h2>
-        <p>Je développe mes compétences en création de sites web et d'applications en construisant des projets concrets : un portfolio, une boutique en ligne, une radio web, un planificateur d'études.</p>
-        <p>J'apprends en continu et je choisis des technologies simples et solides : HTML, CSS et JavaScript pour le côté visible, Node.js, Express et PostgreSQL pour la partie serveur et les données.</p>
-        <p>Ce que je ne sais pas encore faire, je le dis. Ce que je promets, je le tiens : chaque devis précise ce qui est inclus avant de commencer.</p>
+        <h2>{{t.about.storyTitle}}</h2>
+        <p>{{t.about.story1}}</p>
+        <p>{{t.about.story2}}</p>
+        <p>{{t.about.story3}}</p>
       </div>
-      <aside class="panel">
-        <h3>Technologies utilisées</h3>
-        <ul class="tags"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>Node.js</li><li>Express</li><li>PostgreSQL</li></ul>
-        <h3>En apprentissage</h3>
-        <ul class="tags tags-soft"><li>React</li><li>Python</li></ul>
+      <aside class="panel founder">
+        <span class="icon-badge"><svg class="icon" aria-hidden="true"><use href="#i-user"/></svg></span>
+        <h3>{{t.about.founderTitle}}</h3>
+        <p><strong>{{t.about.founderName}}</strong><br><span class="muted">{{t.about.founderRole}}</span></p>
+        <p class="muted">{{t.about.founderText}}</p>
       </aside>
     </section>
 
     <section class="section section-alt">
-      <div class="container">
-        <div class="section-head">
-          <p class="eyebrow">Vision</p>
-          <h2>Rendre le numérique <span class="grad">accessible</span></h2>
-          <p>Mon objectif : accompagner les entrepreneurs, commerces et organisations, au Togo comme à l'international, dans leur présence en ligne, avec des solutions adaptées à leurs moyens.</p>
+      <div class="container two-col">
+        <div>
+          <h2>{{t.about.visionTitle}}</h2>
+          <p>{{t.about.visionText}}</p>
         </div>
-        <div class="cards">
-          <article class="card"><h3>Clarté</h3><p>Des explications simples, un devis lisible, aucun jargon inutile.</p></article>
-          <article class="card"><h3>Qualité</h3><p>Des sites rapides, adaptés au mobile, soignés dans les détails.</p></article>
-          <article class="card"><h3>Écoute</h3><p>Votre activité d'abord : la technologie est au service de vos objectifs.</p></article>
-          <article class="card"><h3>Honnêteté</h3><p>Des démonstrations présentées comme telles, des prix annoncés à l'avance.</p></article>
+        <div>
+          <h2>{{t.about.missionTitle}}</h2>
+          <p>{{t.about.missionText}}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container" aria-labelledby="h-values">
+      <div class="section-head">
+        <p class="eyebrow">{{t.about.valuesEyebrow}}</p>
+        <h2 id="h-values">{{t.about.valuesTitle}}</h2>
+      </div>
+      <div class="cards">
+        <article class="card"><h3>{{t.about.v1}}</h3><p class="muted">{{t.about.v1t}}</p></article>
+        <article class="card"><h3>{{t.about.v2}}</h3><p class="muted">{{t.about.v2t}}</p></article>
+        <article class="card"><h3>{{t.about.v3}}</h3><p class="muted">{{t.about.v3t}}</p></article>
+        <article class="card"><h3>{{t.about.v4}}</h3><p class="muted">{{t.about.v4t}}</p></article>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container two-col">
+        <div class="panel">
+          <h2>{{t.about.skillsTitle}}</h2>
+          <h3>{{t.about.skillsNow}}</h3>
+          <ul class="tags"><li>HTML5</li><li>CSS3</li><li>JavaScript</li><li>Node.js</li><li>Express</li><li>PostgreSQL</li><li>Supabase</li><li>Git &amp; GitHub</li></ul>
+          <h3>{{t.about.skillsLearning}}</h3>
+          <ul class="tags tags-soft"><li>React</li><li>Python</li></ul>
+        </div>
+        <div>
+          <h2>{{t.about.methodTitle}}</h2>
+          <p>{{t.about.methodText}}</p>
+          <p><a class="button button-ghost" href="{{p:process}}">{{t.about.methodLink}}</a></p>
         </div>
       </div>
     </section>
 
     <section class="section container">
       <div class="cta-band">
-        <div><h2>Travaillons ensemble</h2><p>Décrivez votre projet, je reviens vers vous avec une proposition.</p></div>
-        <div class="actions"><a class="button button-primary" href="/contact#devis">Demander un devis</a><a class="button button-ghost" href="/portfolio">Voir le portfolio</a></div>
+        <div><h2>{{t.about.ctaTitle}}</h2><p>{{t.about.ctaText}}</p></div>
+        <div class="actions"><a class="button button-primary" href="{{p:contact}}#devis">{{t.about.ctaButton}}</a><a class="button button-ghost" href="{{p:portfolio}}">{{t.about.ctaPortfolio}}</a></div>
       </div>
     </section>

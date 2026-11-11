@@ -2,43 +2,24 @@
   "use strict";
   const grid = document.getElementById("project-grid");
   const count = document.getElementById("result-count");
-  const search = document.getElementById("f-search");
-  const category = document.getElementById("f-category");
-  const type = document.getElementById("f-type");
+  const buttons = [...document.querySelectorAll("#project-filters .chip-btn")];
   let projects = [];
-
-  const normalize = (value) => String(value || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  let kind = "";
 
   function render() {
-    const query = normalize(search.value.trim());
-    const filtered = projects.filter((p) => {
-      if (category.value && p.category !== category.value) return false;
-      if (type.value === "real" && p.demo) return false;
-      if (type.value === "demo" && !p.demo) return false;
-      if (!query) return true;
-      return normalize([p.title, p.description, p.category, p.technologies].join(" ")).includes(query);
-    });
-    count.textContent = projects.length
-      ? `${filtered.length} projet${filtered.length > 1 ? "s" : ""} affiché${filtered.length > 1 ? "s" : ""} sur ${projects.length}`
-      : "";
-    grid.replaceChildren(...(filtered.length
-      ? filtered.map((p) => SD.projectCard(p))
-      : [SD.message(projects.length ? "Aucun projet ne correspond à votre recherche." : "Les projets seront bientôt ajoutés.")]));
+    const filtered = projects.filter((p) => !kind || p.kind === kind);
+    count.textContent = projects.length ? SD.t("projectShown", { n: filtered.length }) : "";
+    grid.replaceChildren(...(filtered.length ? filtered.map((p) => SD.projectCard(p)) : [SD.message(SD.t(projects.length ? "noMatch" : "noProjects"))]));
     SD.reveal();
   }
 
-  try {
-    ({ projects } = await SD.getJSON("/api/projects"));
-    const categories = [...new Set(projects.map((p) => p.category))].sort((a, b) => a.localeCompare(b, "fr"));
-    category.append(...categories.map((c) => new Option(c, c)));
-  } catch {
-    grid.replaceChildren(SD.message("Les projets ne peuvent pas être chargés pour le moment. Réessayez plus tard."));
-    return;
-  }
+  try { ({ projects } = await SD.getJSON("/api/projects")); }
+  catch { grid.replaceChildren(SD.message(SD.t("loadError"))); return; }
 
-  document.getElementById("project-filters").addEventListener("submit", (event) => event.preventDefault());
-  search.addEventListener("input", render);
-  category.addEventListener("change", render);
-  type.addEventListener("change", render);
+  buttons.forEach((button) => button.addEventListener("click", () => {
+    kind = button.dataset.kind;
+    buttons.forEach((b) => { const on = b === button; b.classList.toggle("active", on); b.setAttribute("aria-pressed", String(on)); });
+    render();
+  }));
   render();
 })();

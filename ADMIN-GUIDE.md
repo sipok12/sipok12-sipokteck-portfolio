@@ -1,6 +1,6 @@
 # Guide d'utilisation de l'administration — SIPOKTECH DIGITAL
 
-Adresse : `https://sipokteck-portfolio.onrender.com/admin` (non liée depuis le site public, non référencée par Google).
+Adresse : `https://sipokteck-portfolio.onrender.com/admin` (lien discret « Administration » en bas de chaque page, non référencé par Google).
 
 ## 1. Se connecter
 
@@ -35,6 +35,10 @@ Adresse : `https://sipokteck-portfolio.onrender.com/admin` (non liée depuis le 
 4. **Projet de démonstration** : décochez la case pour un projet réellement livré à un client (il s'affiche alors « Projet réel »).
 5. Supprimer un projet demande confirmation et efface aussi ses images.
 
+## 4 bis. Site bilingue (français / anglais)
+
+Le site existe en français (`/`) et en anglais (`/en`). Les champs « … en anglais » de l'administration (services, formules, projets, témoignages, informations du site) alimentent la version anglaise ; **s'ils sont vides, le texte français s'affiche**. Les demandes de devis reçues restent identiques dans les deux langues (la page anglaise envoie les mêmes valeurs).
+
 ## 5. Services et tarifs
 
 - Prix vide = « Sur devis » · un seul prix = « À partir de » · prix minimum + maximum = « Entre … et … ».
@@ -42,9 +46,13 @@ Adresse : `https://sipokteck-portfolio.onrender.com/admin` (non liée depuis le 
 - Image (facultative), icône, ordre d'affichage, contenu inclus (un point par ligne), conditions.
 - Les changements sont visibles immédiatement sur les pages Services, Tarifs et Accueil.
 
+## 5 bis. Formules tarifaires (STARTER / BUSINESS / PREMIUM)
+
+Menu **Formules tarifaires** : nom, accroche, prix (vide = « Sur devis »), fonctionnalités (une par ligne), mise en avant, prestation présélectionnée dans le formulaire de devis, ordre, actif. Les prix sont **indicatifs** : le site rappelle que le tarif définitif est fixé dans un devis. Au départ, BUSINESS reprend votre prix « site vitrine » (25 000 – 40 000 FCFA), PREMIUM votre prix « application web » (à partir de 150 000 FCFA) et STARTER est « sur devis » : modifiez-les librement.
+
 ## 6. Témoignages
 
-N'ajoutez que de vrais avis, **avec l'autorisation écrite du client**, et vérifiez-les avant de cocher « Publier ». Un témoignage non publié n'apparaît jamais sur le site.
+Champs : nom, entreprise, texte (et version anglaise), note 1 à 5 (facultative), date, photo. **La photo n'est conservée et affichée que si la case d'autorisation est cochée.** N'ajoutez que de vrais avis, **avec l'autorisation écrite du client**, et vérifiez-les avant de cocher « Publier ». Un témoignage non publié n'apparaît jamais sur le site.
 
 ## 7. Clients et messages
 

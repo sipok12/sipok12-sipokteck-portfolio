@@ -40,15 +40,18 @@
     ]);
     if (config) {
       primaryWhatsapp = config.whatsappPrimary || primaryWhatsapp;
-      budgetSelect.append(...config.quoteOptions.budgets.map((b) => new Option(b, b)));
-      deadlineSelect.append(...config.quoteOptions.deadlines.map((d) => new Option(d, d)));
+      // La valeur envoyée reste la valeur française attendue par le serveur ; seul le libellé change selon la langue.
+      const budgetLabels = SD.raw("budgets") || {};
+      const deadlineLabels = SD.raw("deadlines") || {};
+      budgetSelect.append(...config.quoteOptions.budgets.map((b) => new Option(budgetLabels[b] || b, b)));
+      deadlineSelect.append(...config.quoteOptions.deadlines.map((d) => new Option(deadlineLabels[d] || d, d)));
     }
-    serviceSelect.replaceChildren(new Option("Choisir une prestation…", ""));
+    serviceSelect.replaceChildren(new Option(SD.t("servicePlaceholder"), ""));
     for (const s of servicesData.services) {
       serviceTitles[s.slug] = s.title;
       serviceSelect.append(new Option(s.title, s.slug));
     }
-    serviceTitles.autre = "Autre besoin / projet sur mesure";
+    serviceTitles.autre = SD.t("other");
     serviceSelect.append(new Option(serviceTitles.autre, "autre"));
     const wanted = new URLSearchParams(location.search).get("service");
     if (wanted && serviceTitles[wanted]) serviceSelect.value = wanted;
@@ -75,14 +78,14 @@
     const body = Object.fromEntries(form.entries());
     body.consent = $("#q-consent").checked;
     button.disabled = true;
-    button.textContent = "Envoi en cours…";
+    button.textContent = SD.t("sending");
     try {
       const data = await SD.postJSON("/api/quote", body);
       const label = serviceTitles[body.service] || "";
-      $("#quote-success-text").textContent = data.message || "Votre demande a bien été enregistrée.";
-      const reference = data.reference ? `la demande de devis ${data.reference}` : "ma demande de devis";
+      $("#quote-success-text").textContent = data.message || "";
+      const reference = data.reference ? SD.t("quoteRef", { r: data.reference }) : SD.t("quoteGeneric");
       $("#quote-wa").href = SD.whatsappLink(primaryWhatsapp,
-        `Bonjour, je viens d'envoyer ${reference}${label ? ` pour « ${label} »` : ""} sur le site SIPOKTECH DIGITAL.`);
+        label ? SD.t("quoteSent", { r: reference, s: label }) : SD.t("quoteSentNoService", { r: reference }));
       quoteForm.hidden = true;
       success.hidden = false;
       success.focus();
@@ -91,7 +94,7 @@
       setFeedback(quoteFeedback, error.message, true);
     } finally {
       button.disabled = false;
-      button.textContent = "Envoyer ma demande";
+      button.textContent = SD.t("sendQuote");
     }
   });
 
@@ -111,16 +114,16 @@
     if (!contactForm.reportValidity()) return;
     const button = contactForm.querySelector("button[type=submit]");
     button.disabled = true;
-    button.textContent = "Envoi en cours…";
+    button.textContent = SD.t("sending");
     try {
       const data = await SD.postJSON("/api/contact", Object.fromEntries(new FormData(contactForm).entries()));
-      setFeedback(contactFeedback, data.message || "Message enregistré.", false);
+      setFeedback(contactFeedback, data.message || "", false);
       contactForm.reset();
     } catch (error) {
       setFeedback(contactFeedback, error.message, true);
     } finally {
       button.disabled = false;
-      button.textContent = "Envoyer le message";
+      button.textContent = SD.t("sendMessage");
     }
   });
 })();

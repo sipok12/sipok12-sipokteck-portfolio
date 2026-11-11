@@ -1,20 +1,28 @@
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="/" aria-label="SIPOKTECH DIGITAL, accueil">
-        <span class="brand-mark" aria-hidden="true">S</span>
+      <a class="brand" href="{{p:home}}" aria-label="SIPOKTECH DIGITAL — {{t.nav.home}}">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#0B1F36"/><path d="M27 13.5c-1.8-1.7-4.2-2.5-6.8-2.5-4 0-6.7 2-6.7 5 0 7 13.6 3.6 13.6 10.8 0 3.2-3.2 5.2-7.2 5.2-3 0-5.7-1.1-7.5-3" fill="none" stroke="#00D9FF" stroke-width="3.6" stroke-linecap="round"/><circle cx="30" cy="30" r="2.6" fill="#fff"/></svg>
         <span class="brand-name">SIPOKTECH<b>DIGITAL</b></span>
       </a>
-      <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Ouvrir le menu">
-        <span></span><span></span><span></span>
-      </button>
-      <nav id="nav-links" class="nav-links" aria-label="Navigation principale">
-        <a href="/" data-nav="accueil">Accueil</a>
-        <a href="/a-propos" data-nav="a-propos">À propos</a>
-        <a href="/services" data-nav="services">Services</a>
-        <a href="/tarifs" data-nav="tarifs">Tarifs</a>
-        <a href="/portfolio" data-nav="portfolio">Portfolio</a>
-        <a href="/contact" data-nav="contact">Contact</a>
-        <a class="button button-primary button-small" href="/contact#devis">Demander un devis</a>
+      <nav id="nav-links" class="nav-links" aria-label="{{t.nav.label}}">
+        <a href="{{p:home}}" data-nav="home">{{t.nav.home}}</a>
+        <a href="{{p:about}}" data-nav="about">{{t.nav.about}}</a>
+        <a href="{{p:services}}" data-nav="services">{{t.nav.services}}</a>
+        <a href="{{p:process}}" data-nav="process">{{t.nav.process}}</a>
+        <a href="{{p:portfolio}}" data-nav="portfolio">{{t.nav.portfolio}}</a>
+        <a href="{{p:pricing}}" data-nav="pricing">{{t.nav.pricing}}</a>
+        <a href="{{p:contact}}" data-nav="contact">{{t.nav.contact}}</a>
+        <a class="button button-primary button-small nav-cta" href="{{p:contact}}#devis">{{t.nav.quote}}</a>
       </nav>
+      <div class="header-tools">
+        <a class="tool-btn lang-switch" href="{{switch}}" hreflang="{{t.nav.langShort}}" lang="{{t.nav.langShort}}" aria-label="{{t.nav.lang}}">{{t.nav.langShort}}</a>
+        <button class="tool-btn" id="theme-toggle" type="button" aria-label="{{t.nav.theme}}">
+          <svg class="icon icon-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+          <svg class="icon icon-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+        </button>
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="{{t.nav.menu}}">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </header>

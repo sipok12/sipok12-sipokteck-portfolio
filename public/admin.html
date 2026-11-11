@@ -7,10 +7,20 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Administration — SIPOKTECH DIGITAL</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/admin.css">
-  <script src="/admin.js" defer></script>
+  <link rel="stylesheet" href="/admin.css?v=3">
+  <script src="/admin.js?v=3" defer></script>
 </head>
 <body>
+  <!-- Écran de chargement : visible tant que la session n'est pas vérifiée (le serveur gratuit peut mettre une minute à se réveiller). -->
+  <div id="boot" class="login-wrap">
+    <section class="login-card">
+      <p class="brand-line">SIPOKTECH DIGITAL <span>/ ADMIN</span></p>
+      <h1>Administration</h1>
+      <p class="muted" id="boot-text">Chargement de l'administration…</p>
+      <button class="btn primary" id="boot-retry" type="button" hidden>Réessayer</button>
+      <noscript><p class="notice warn">JavaScript est nécessaire pour utiliser l'administration. Activez-le dans votre navigateur.</p></noscript>
+    </section>
+  </div>
   <!-- Connexion, mot de passe oublié et nouveau mot de passe -->
   <div id="login-view" class="login-wrap" hidden>
     <section class="login-card">
@@ -62,6 +72,7 @@
         <button class="nav-item" data-tab="messages" type="button">Messages <span class="count" data-count="messages" hidden></span></button>
         <button class="nav-item" data-tab="projects" type="button">Projets</button>
         <button class="nav-item" data-tab="services" type="button">Services &amp; tarifs</button>
+        <button class="nav-item" data-tab="pricing" type="button">Formules tarifaires</button>
         <button class="nav-item" data-tab="testimonials" type="button">Témoignages</button>
         <button class="nav-item" data-tab="clients" type="button">Clients</button>
         <button class="nav-item" data-tab="settings" type="button">Informations du site</button>

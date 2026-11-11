@@ -232,3 +232,73 @@ BEGIN
   END IF;
 END $$;
 -- quotes, clients, messages, admins, admin_profiles, site_settings, activity_log : aucune politique = inaccessibles via l'API REST.
+
+-- =====================================================================
+-- Version 4 : site bilingue FR/EN, formules tarifaires, témoignages enrichis
+-- Migration NON destructive : uniquement des colonnes / tables ajoutées, aucune donnée existante modifiée.
+-- Les colonnes *_en sont facultatives : si elles sont vides, le texte français est affiché.
+-- =====================================================================
+
+-- Services : traductions anglaises, avantages, technologies.
+ALTER TABLE services ADD COLUMN IF NOT EXISTS title_en VARCHAR(120) NOT NULL DEFAULT '';
+ALTER TABLE services ADD COLUMN IF NOT EXISTS summary_en VARCHAR(300) NOT NULL DEFAULT '';
+ALTER TABLE services ADD COLUMN IF NOT EXISTS details_en TEXT NOT NULL DEFAULT '';
+ALTER TABLE services ADD COLUMN IF NOT EXISTS advantages TEXT NOT NULL DEFAULT '';      -- un point par ligne
+ALTER TABLE services ADD COLUMN IF NOT EXISTS advantages_en TEXT NOT NULL DEFAULT '';
+ALTER TABLE services ADD COLUMN IF NOT EXISTS technologies VARCHAR(300) NOT NULL DEFAULT '';
+ALTER TABLE services ADD COLUMN IF NOT EXISTS conditions_en TEXT NOT NULL DEFAULT '';
+
+-- Projets : type (filtres du portfolio), fonctionnalités, traductions.
+-- « kind » : website | business | landing | portfolio | other. Les projets existants sont classés selon leur catégorie.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = current_schema() AND table_name = 'projects' AND column_name = 'kind') THEN
+    ALTER TABLE projects ADD COLUMN kind VARCHAR(12) NOT NULL DEFAULT 'website'
+      CHECK (kind IN ('website', 'business', 'landing', 'portfolio', 'other'));
+    UPDATE projects SET kind = 'portfolio' WHERE category ILIKE '%portfolio%';
+    UPDATE projects SET kind = 'business' WHERE kind = 'website' AND (category ILIKE '%commerce%' OR category ILIKE '%boutique%' OR category ILIKE '%business%' OR category ILIKE '%entreprise%');
+    UPDATE projects SET kind = 'landing' WHERE kind = 'website' AND (category ILIKE '%landing%');
+  END IF;
+END $$;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS category_en VARCHAR(80) NOT NULL DEFAULT '';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS description_en TEXT NOT NULL DEFAULT '';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS features TEXT NOT NULL DEFAULT '';         -- fonctionnalités principales, une par ligne
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS features_en TEXT NOT NULL DEFAULT '';
+
+-- Témoignages : note facultative, date, photo (affichée seulement avec autorisation), version anglaise.
+ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS content_en TEXT NOT NULL DEFAULT '';
+ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS rating SMALLINT CHECK (rating IS NULL OR (rating BETWEEN 1 AND 5));
+ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS testimonial_date DATE;
+ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS photo_url TEXT;
+ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS photo_consent BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Formules tarifaires indicatives (STARTER / BUSINESS / PREMIUM), modifiables depuis l'administration.
+CREATE TABLE IF NOT EXISTS pricing_plans (
+  id BIGSERIAL PRIMARY KEY,
+  slug VARCHAR(40) NOT NULL UNIQUE,
+  name VARCHAR(60) NOT NULL,
+  name_en VARCHAR(60) NOT NULL DEFAULT '',
+  tagline VARCHAR(200) NOT NULL DEFAULT '',
+  tagline_en VARCHAR(200) NOT NULL DEFAULT '',
+  price_min INTEGER CHECK (price_min IS NULL OR price_min >= 0),   -- FCFA ; NULL = « sur devis »
+  price_max INTEGER CHECK (price_max IS NULL OR price_max >= 0),
+  price_unit VARCHAR(40) NOT NULL DEFAULT '',
+  features TEXT NOT NULL DEFAULT '',                               -- une fonctionnalité par ligne
+  features_en TEXT NOT NULL DEFAULT '',
+  service_slug VARCHAR(60) NOT NULL DEFAULT '',                    -- prestation présélectionnée dans le formulaire de devis
+  highlighted BOOLEAN NOT NULL DEFAULT FALSE,
+  position INTEGER NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE pricing_plans ENABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    DROP POLICY IF EXISTS "Public reads active pricing plans" ON pricing_plans;
+    CREATE POLICY "Public reads active pricing plans" ON pricing_plans FOR SELECT TO anon, authenticated USING (active = true);
+    -- Les témoignages publiés restent lisibles ; la photo n'est servie par l'API du site qu'avec autorisation.
+  END IF;
+END $$;

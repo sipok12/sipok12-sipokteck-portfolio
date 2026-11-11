@@ -1,13 +1,12 @@
 (async function () {
   "use strict";
+  const plansBox = document.getElementById("plans-grid");
   const box = document.getElementById("pricing-grid");
-  try {
-    const { services } = await SD.getJSON("/api/services");
-    box.replaceChildren(...(services.length
-      ? services.map((s) => SD.serviceCard(s, "pricing"))
-      : [SD.message("Les tarifs seront bientôt publiés. Demandez un devis personnalisé.")]));
-  } catch {
-    box.replaceChildren(SD.message("Les tarifs ne peuvent pas être chargés pour le moment. Demandez un devis par WhatsApp."));
-  }
+  const [plans, services] = await Promise.all([
+    SD.getJSON("/api/pricing").catch(() => null),
+    SD.getJSON("/api/services").catch(() => null)
+  ]);
+  plansBox.replaceChildren(...(plans ? (plans.plans.length ? plans.plans.map((p) => SD.planCard(p)) : [SD.message(SD.t("noPlans"))]) : [SD.message(SD.t("loadError"))]));
+  box.replaceChildren(...(services ? (services.services.length ? services.services.map((s) => SD.serviceCard(s, "pricing")) : [SD.message(SD.t("noServices"))]) : [SD.message(SD.t("loadError"))]));
   SD.reveal();
 })();

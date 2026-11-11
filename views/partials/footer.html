@@ -1,29 +1,33 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div class="footer-brand">
-        <a class="brand" href="/" aria-label="SIPOKTECH DIGITAL, accueil">
-          <span class="brand-mark" aria-hidden="true">S</span>
+        <a class="brand" href="{{p:home}}" aria-label="SIPOKTECH DIGITAL — {{t.nav.home}}">
+          <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#0B1F36"/><path d="M27 13.5c-1.8-1.7-4.2-2.5-6.8-2.5-4 0-6.7 2-6.7 5 0 7 13.6 3.6 13.6 10.8 0 3.2-3.2 5.2-7.2 5.2-3 0-5.7-1.1-7.5-3" fill="none" stroke="#00D9FF" stroke-width="3.6" stroke-linecap="round"/><circle cx="30" cy="30" r="2.6" fill="#fff"/></svg>
           <span class="brand-name">SIPOKTECH<b>DIGITAL</b></span>
         </a>
-        <p data-setting="slogan">Votre vision, notre créativité, le numérique comme solution.</p>
+        <p data-setting="slogan">{{t.slogan}}</p>
+        <p class="fineprint">{{t.footer.text}}</p>
       </div>
-      <nav class="footer-col" aria-label="Pages du site">
-        <h2>Le site</h2>
-        <a href="/a-propos">À propos</a>
-        <a href="/services">Services</a>
-        <a href="/tarifs">Tarifs</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="/contact">Contact</a>
+      <nav class="footer-col" aria-label="{{t.footer.pages}}">
+        <h2>{{t.footer.pages}}</h2>
+        <a href="{{p:about}}">{{t.nav.about}}</a>
+        <a href="{{p:services}}">{{t.nav.services}}</a>
+        <a href="{{p:process}}">{{t.nav.process}}</a>
+        <a href="{{p:portfolio}}">{{t.nav.portfolio}}</a>
+        <a href="{{p:pricing}}">{{t.nav.pricing}}</a>
+        <a href="{{p:testimonials}}">{{t.nav.testimonials}}</a>
+        <a href="{{p:contact}}">{{t.nav.contact}}</a>
       </nav>
       <div class="footer-col">
-        <h2>Contact</h2>
-        <a data-wa="primary" data-wa-text="Bonjour, je vous contacte depuis le site SIPOKTECH DIGITAL." href="https://wa.me/22878003599" target="_blank" rel="noopener noreferrer">WhatsApp : <span data-wa-num>+228 78 00 35 99</span></a>
+        <h2>{{t.footer.contact}}</h2>
+        <a data-wa="primary" data-wa-text="" href="https://wa.me/22878003599" target="_blank" rel="noopener noreferrer">WhatsApp : <span data-wa-num>+228 78 00 35 99</span></a>
         <a data-email href="mailto:jeanpaulahite35@gmail.com">jeanpaulahite35@gmail.com</a>
         <span>Lomé, Togo</span>
         <div class="social-links" data-social></div>
       </div>
     </div>
     <div class="container footer-bottom">
-      <span>© <span id="year">2026</span> SIPOKTECH DIGITAL — Jean-Paul AHITE</span>
+      <span>© <span id="year">2026</span> {{t.footer.rights}}</span>
+      <a class="admin-link" href="/admin" rel="nofollow">{{t.footer.admin}}</a>
     </div>
   </footer>
