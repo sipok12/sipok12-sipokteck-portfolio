@@ -36,6 +36,7 @@
       if (items.length < 2) return;
       statsBox.replaceChildren(...items.map(([label, n]) => SD.h("div", { class: "card stat" }, SD.h("strong", { text: String(n) }), SD.h("span", { text: SD.t(label) }))));
       statsSection.hidden = false;
+      if (SD.countUp) SD.countUp(statsBox);
     } catch { /* section simplement masquée */ }
   }
 

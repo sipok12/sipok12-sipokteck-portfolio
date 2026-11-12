@@ -50,6 +50,7 @@ router.get("/config", asyncRoute(async (req, res) => {
     whatsappPrimary: digits(set.whatsapp_primary, process.env.WHATSAPP_PRIMARY || process.env.WHATSAPP_MAIN || "22878003599"),
     whatsappSecondary: digits(set.whatsapp_secondary, process.env.WHATSAPP_SECONDARY || "22871344338"),
     quoteOptions: { budgets: BUDGETS, deadlines: DEADLINES },
+    countries: String(set.served_countries || "").split(/[\s,;]+/).map((c) => c.toUpperCase()).filter((c) => /^[A-Z]{2}$/.test(c)).slice(0, 40),
     social: Object.fromEntries(Object.entries(social).filter(([, url]) => typeof url === "string" && /^https?:\/\//i.test(url)))
   });
 }));

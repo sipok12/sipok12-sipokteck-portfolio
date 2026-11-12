@@ -64,6 +64,22 @@
       <p class="section-cta"><a class="button button-ghost" href="{{p:portfolio}}">{{t.home.allProjects}}</a></p>
     </section>
 
+    <section class="section container" id="globe-section" aria-labelledby="h-globe">
+      <div class="two-col globe-layout">
+        <div class="section-head left">
+          <p class="eyebrow">{{t.home.globeEyebrow}}</p>
+          <h2 id="h-globe">{{t.home.globeTitle}}</h2>
+          <p>{{t.home.globeLead}}</p>
+          <ul class="tags tags-lg" id="globe-list"></ul>
+          <p class="fineprint" id="globe-note"></p>
+        </div>
+        <div class="globe-wrap">
+          <canvas id="globe" role="img" aria-label="{{t.home.globeLabel}}" width="440" height="440"></canvas>
+          <p class="fineprint globe-hint">{{t.home.globeHint}}</p>
+        </div>
+      </div>
+    </section>
+
     <section class="section section-alt" id="stats" hidden aria-labelledby="h-stats">
       <div class="container">
         <div class="section-head">
