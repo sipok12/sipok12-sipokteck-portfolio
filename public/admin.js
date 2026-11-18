@@ -265,11 +265,26 @@
   const tile = (label, value, accent) => h("div", { class: accent ? "tile accent" : "tile" }, h("strong", { text: value }), h("span", { text: label }));
   const empty = (text) => h("p", { class: "muted", text });
 
+  // Avis « ancien compte » : masquable (mémorisé dans ce navigateur), avec les étapes à suivre.
+  function legacyNotice() {
+    if (!(caps.authMethod === "legacy" && caps.supabaseAuth)) return null;
+    try { if (localStorage.getItem("sd_hide_legacy_notice") === "1") return null; } catch (e) { /* stockage indisponible */ }
+    const box = h("div", { class: "notice warn" },
+      h("p", { style: "margin:0 0 .4rem", text: "Connexion avec l'ancien compte : tout fonctionne, mais une connexion Supabase Auth est plus sûre." }),
+      h("p", { class: "muted", style: "margin:0 0 .6rem", text: "Étapes : Supabase → Authentication → Users → Add user (jeanpaulahite35@gmail.com, Auto confirm), puis reconnectez-vous avec ce compte." }),
+      h("button", { class: "btn", type: "button", text: "Masquer cet avis" }));
+    box.querySelector("button").addEventListener("click", () => {
+      try { localStorage.setItem("sd_hide_legacy_notice", "1"); } catch (e) { /* ignoré */ }
+      box.remove();
+    });
+    return box;
+  }
+
   // --- Vue d'ensemble ---
   views.dashboard = async (root) => {
     const stats = await api("/api/admin/stats");
     const t = stats.totals;
-    root.replaceChildren(
+    root.replaceChildren(...[
       h("div", { class: "tiles" },
         tile("Demandes en attente", t.quotes_pending, true), tile("Nouvelles demandes", t.quotes_new), tile("Demandes reçues", t.quotes_total),
         tile("Demandes sur 30 jours", t.quotes_30d), tile("Messages non lus", t.messages_new), tile("Projets publiés", t.projects_published),
@@ -284,9 +299,8 @@
       h("p", { class: "notice", text: stats.mailConfigured
         ? "Notifications par email : activées."
         : "Notifications par email : non configurées. Les demandes sont enregistrées ici ; ajoutez RESEND_API_KEY pour être aussi prévenu par email." }),
-      caps.authMethod === "legacy" && caps.supabaseAuth
-        ? h("p", { class: "notice warn", text: "Vous êtes connecté avec l'ancien compte. Créez votre compte dans Supabase Auth (voir le guide) puis reconnectez-vous avec." }) : null,
-      !caps.storage ? h("p", { class: "notice", text: "Envoi d'images : non configuré (clé SUPABASE_SERVICE_ROLE_KEY absente). Vous pouvez coller l'adresse d'une image à la place." }) : null);
+      legacyNotice(),
+      !caps.storage ? h("p", { class: "notice", text: "Envoi d'images : non configuré (clé SUPABASE_SERVICE_ROLE_KEY absente). Vous pouvez coller l'adresse d'une image à la place." }) : null].filter(Boolean));
   };
 
   // --- Statistiques et évolution (uniquement des données réellement enregistrées) ---
@@ -787,12 +801,12 @@
         notify("Mot de passe modifié.");
       } catch (error) { say(feedback, error.message, true); }
     });
-    root.replaceChildren(
+    root.replaceChildren(...[
       h("div", { class: "panel" }, h("h2", { text: "Mon compte" }),
         h("p", { class: "muted", text: caps.authMethod === "supabase" ? "Connexion : Supabase Auth." : "Connexion : ancien compte du site." }), form),
       caps.authMethod !== "supabase" ? h("p", { class: "notice warn", text: caps.supabaseAuth
         ? "Votre compte Supabase Auth n'est pas encore utilisé. Une fois créé (voir le guide), connectez-vous avec lui : la récupération du mot de passe par email fonctionnera alors."
-        : "Supabase Auth n'est pas encore configuré sur ce site (variables SUPABASE_URL et SUPABASE_ANON_KEY)." }) : null);
+        : "Supabase Auth n'est pas encore configuré sur ce site (variables SUPABASE_URL et SUPABASE_ANON_KEY)." }) : null].filter(Boolean));
   };
 
   if (readRecoveryFromUrl()) { showLogin(); showForm("reset"); $("#reset-password").focus(); }
