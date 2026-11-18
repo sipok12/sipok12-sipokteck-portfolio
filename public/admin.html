@@ -7,12 +7,13 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Administration — SIPOKTECH DIGITAL</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/admin.css?v=3">
-  <script src="/admin.js?v=3" defer></script>
+  <link rel="stylesheet" href="/admin.css?v=4">
+  <script src="/admin.js?v=4" defer></script>
 </head>
 <body>
   <!-- Écran de chargement : visible tant que la session n'est pas vérifiée (le serveur gratuit peut mettre une minute à se réveiller). -->
   <div id="boot" class="login-wrap">
+    <span class="orb orb-a" aria-hidden="true"></span><span class="orb orb-b" aria-hidden="true"></span>
     <section class="login-card">
       <p class="brand-line">SIPOKTECH DIGITAL <span>/ ADMIN</span></p>
       <h1>Administration</h1>
@@ -23,6 +24,7 @@
   </div>
   <!-- Connexion, mot de passe oublié et nouveau mot de passe -->
   <div id="login-view" class="login-wrap" hidden>
+    <span class="orb orb-a" aria-hidden="true"></span><span class="orb orb-b" aria-hidden="true"></span>
     <section class="login-card">
       <p class="brand-line">SIPOKTECH DIGITAL <span>/ ADMIN</span></p>
       <p class="eyebrow">Espace privé</p>
@@ -33,7 +35,7 @@
         <label for="login-email">Email administrateur</label>
         <input id="login-email" name="email" type="email" required autocomplete="username">
         <label for="login-password">Mot de passe</label>
-        <input id="login-password" name="password" type="password" required autocomplete="current-password">
+        <div class="pw"><input id="login-password" name="password" type="password" required autocomplete="current-password"><button class="pw-toggle" type="button" data-toggle-pw="login-password" aria-label="Afficher le mot de passe" aria-pressed="false">Afficher</button></div>
         <button class="btn primary block" type="submit">Se connecter</button>
         <p class="feedback" id="login-feedback" role="status"></p>
         <p class="login-links"><button class="link-button" id="show-recover" type="button">Mot de passe oublié ?</button> · <a href="/">Voir le site public</a></p>
@@ -53,7 +55,7 @@
         <h1>Nouveau mot de passe</h1>
         <p class="muted">Choisissez un mot de passe long et unique (12 caractères minimum).</p>
         <label for="reset-password">Nouveau mot de passe</label>
-        <input id="reset-password" name="password" type="password" required minlength="12" autocomplete="new-password">
+        <div class="pw"><input id="reset-password" name="password" type="password" required minlength="12" autocomplete="new-password"><button class="pw-toggle" type="button" data-toggle-pw="reset-password" aria-label="Afficher le mot de passe" aria-pressed="false">Afficher</button></div>
         <button class="btn primary block" type="submit">Enregistrer le mot de passe</button>
         <p class="feedback" id="reset-feedback" role="status"></p>
         <p class="login-links"><button class="link-button" data-back-login type="button">← Retour à la connexion</button></p>

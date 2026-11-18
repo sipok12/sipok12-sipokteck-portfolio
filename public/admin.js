@@ -798,3 +798,16 @@
   if (readRecoveryFromUrl()) { showLogin(); showForm("reset"); $("#reset-password").focus(); }
   else checkSession();
 })();
+
+// Bouton « Afficher / Masquer » du mot de passe (formulaires de connexion)
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-toggle-pw]");
+  if (!button) return;
+  const input = document.getElementById(button.dataset.togglePw);
+  const show = input.type === "password";
+  input.type = show ? "text" : "password";
+  button.textContent = show ? "Masquer" : "Afficher";
+  button.setAttribute("aria-pressed", String(show));
+  button.setAttribute("aria-label", show ? "Masquer le mot de passe" : "Afficher le mot de passe");
+});
+
